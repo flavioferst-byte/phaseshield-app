@@ -1,0 +1,32 @@
+# Dependências
+node_modules/
+
+# FFmpeg binários (muito grandes para git)
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+
+# Arquivos temporários
+temp/
+temp_*.mp3
+temp_*.wav
+temp_*.mp4
+
+# Backups
+*.bak
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ambiente
+.env
+.env.local
+
+# Sistema
+.DS_Store
+Thumbs.db

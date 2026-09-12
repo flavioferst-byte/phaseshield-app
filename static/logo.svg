@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 50" width="100%" height="100%">
+  <!-- Minimalist Text Logo -->
+  <text x="10" y="35" font-family="'Space Grotesk', 'Inter', sans-serif" font-size="32px">
+    <!-- "Black" in bold, heavy, impact font. Color: deep dark grey/black -->
+    <tspan font-weight="900" fill="#121212" letter-spacing="-0.5px">Black</tspan>
+    <!-- "Voice" in thin, elegant, light font weight. Color: metallic gold -->
+    <tspan font-weight="300" fill="#dfb15b" letter-spacing="-0.5px">Voice</tspan>
+  </text>
+</svg>

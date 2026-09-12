@@ -1,0 +1,3447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackVoice — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="security.js"></script>
+    <style>
+    /* =========================================================
+       RESET & TOKENS
+    ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --gold:        #00F5A0;
+        --gold-dark:   #00D2FF;
+        --gold-light:  #A5F3FC;
+        --gold-glow:   rgba(0, 245, 160, 0.25);
+        --bg:          #030712;
+        --bg2:         #090d1a;
+        --card:        #0f172a;
+        --card2:       #1e293b;
+        --border:      rgba(148, 163, 184, 0.08);
+        --border-gold: rgba(0, 245, 160, 0.3);
+        --text:        #f8fafc;
+        --text2:       #94a3b8;
+        --text3:       #475569;
+        --success:     #10b981;
+        --warning:     #fbbf24;
+        --danger:      #ef4444;
+        --info:        #06b6d4;
+        --sidebar-w:   240px;
+        --gradient:    linear-gradient(135deg, #00F5A0, #00D2FF);
+        --gradient-btn: linear-gradient(135deg, #00F5A0, #00D2FF);
+        --gradient-glow: 0 0 20px rgba(0, 245, 160, 0.35);
+    }
+
+    html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* =========================================================
+       LAYOUT
+    ========================================================= */
+    .layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* =========================================================
+       SIDEBAR (Ocultada em favor do menu superior)
+    ========================================================= */
+    @media (min-width: 769px) {
+        .sidebar {
+            display: none !important;
+        }
+    }
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 22px 20px 18px;
+        border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        letter-spacing: -0.4px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .logo-black {
+        font-weight: 900;
+        color: var(--text);
+    }
+    .logo-voice {
+        font-weight: 300;
+        color: var(--gold) !important;
+        margin-left: 1px;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 16px 12px;
+        overflow-y: auto;
+    }
+    .nav-section-label {
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: var(--text3);
+        font-family: 'Space Mono', monospace;
+        text-transform: uppercase;
+        padding: 0 8px;
+        margin: 16px 0 6px;
+    }
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 10px;
+        border-radius: 10px;
+        color: var(--text2);
+        cursor: pointer;
+        font-size: 13.5px;
+        font-weight: 500;
+        transition: all 0.18s;
+        border: 1px solid transparent;
+        text-decoration: none;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-item.active {
+        background: rgba(223, 177, 91, 0.1);
+        border-color: rgba(223, 177, 91, 0.2);
+        color: var(--gold);
+    }
+    .nav-item .nav-icon { font-size: 15px; }
+    .nav-badge {
+        background: rgba(223, 177, 91, 0.15);
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 20px;
+        font-family: 'Space Mono', monospace;
+        margin-left: 4px;
+    }
+
+    /* Estilos Customizados para o Novo Dashboard */
+    .dashboard-alert-box {
+        background: rgba(16, 185, 129, 0.05);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+        border-radius: 12px;
+        padding: 16px;
+        color: #10b981;
+        font-size: 12.5px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+    .dashboard-alert-title {
+        font-weight: 700;
+        font-size: 13.5px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .quick-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+    .quick-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: left;
+        position: relative;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 200px;
+    }
+    .quick-card:hover {
+        border-color: var(--border-gold);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(223, 177, 91, 0.08);
+    }
+    .quick-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .quick-card-icon-wrapper {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .quick-card-arrow {
+        font-size: 16px;
+        color: var(--text3);
+        transition: color 0.2s;
+    }
+    .quick-card:hover .quick-card-arrow {
+        color: var(--gold);
+    }
+    .quick-card-title {
+        font-size: 14.5px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    .quick-card-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }
+    .quick-card-btn {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+    .quick-card:hover .quick-card-btn {
+        background: var(--gold);
+        color: #07070f;
+        border-color: var(--gold);
+    }
+
+    .limits-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+    .limits-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .limits-title {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text2);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .limits-desc {
+        font-size: 12px;
+        color: var(--text3);
+        margin-bottom: 20px;
+    }
+    .limits-value-large {
+        font-size: 2.2rem;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+        margin-bottom: 12px;
+    }
+    .limits-progress-bar {
+        height: 6px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+    .limits-progress-fill {
+        height: 100%;
+        background: var(--gold);
+        width: 50%;
+        border-radius: 4px;
+    }
+    .limits-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .limits-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--text);
+    }
+    .limits-item-bullet {
+        color: #10b981;
+        font-size: 14px;
+    }
+
+    .how-it-works-section {
+        margin-bottom: 24px;
+    }
+    .how-it-works-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    .how-it-works-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        position: relative;
+    }
+    .how-it-works-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(223, 177, 91, 0.1);
+        border: 1px solid var(--border-gold);
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        font-family: 'Space Mono', monospace;
+    }
+    .how-it-works-title {
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    .how-it-works-desc {
+        font-size: 12px;
+        color: var(--text2);
+        line-height: 1.4;
+    }
+
+    .sidebar-bottom {
+        padding: 12px;
+        border-top: 1px solid var(--border);
+    }
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.18s;
+        position: relative;
+    }
+    .user-card:hover { background: rgba(255,255,255,0.05); }
+    .user-avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 700;
+        color: #07070f; flex-shrink: 0; overflow: hidden;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; overflow: hidden; }
+    .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-email { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-chevron { font-size: 14px; color: var(--text3); flex-shrink: 0; }
+
+    /* User dropdown */
+    .user-dropdown {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 8px; right: 8px;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        display: none;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        z-index: 100;
+    }
+    .user-dropdown.show { display: block; animation: dropIn 0.2s ease; }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .dropdown-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.15s;
+        color: var(--text2);
+    }
+    .dropdown-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .dropdown-item.danger:hover { background: rgba(248,113,113,0.1); color: var(--danger); }
+    .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .plan-chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(223, 177, 91,0.12);
+        border: 1px solid var(--border-gold);
+        color: var(--gold);
+        font-size: 10px; font-weight: 700;
+        padding: 3px 8px; border-radius: 20px;
+        font-family: 'Space Mono', monospace;
+        margin: 4px 12px 8px;
+        width: fit-content;
+    }
+
+    /* =========================================================
+       MAIN CONTENT
+    ========================================================= */
+    .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg);
+    }
+
+    /* Top bar */
+    .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+        flex-shrink: 0;
+    }
+    .topbar-title {
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-upgrade {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 14px;
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: #07070f;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Space Mono', monospace;
+        letter-spacing: 0.5px;
+        transition: all 0.2s;
+    }
+    .btn-upgrade:hover { transform: translateY(-1px); box-shadow: 0 0 20px var(--gold-glow); }
+    .topbar-avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700;
+        color: #07070f; cursor: pointer; overflow: hidden;
+    }
+    .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* =========================================================
+       CONTENT AREA (scrollable)
+    ========================================================= */
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 24px;
+    }
+    .content::-webkit-scrollbar { width: 4px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    /* View sections */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* =========================================================
+       STATS CARDS
+    ========================================================= */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .stat-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--border-gold); }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        opacity: 0.06;
+        transform: translate(30%, -30%);
+    }
+    .stat-card.gold::before { background: var(--gold); }
+    .stat-card.blue::before { background: var(--info); }
+    .stat-card.green::before { background: var(--success); }
+    .stat-card.orange::before { background: var(--warning); }
+    .stat-icon {
+        font-size: 22px;
+        margin-bottom: 12px;
+        display: block;
+    }
+    .stat-value {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.blue { color: var(--info); }
+    .stat-value.green { color: var(--success); }
+    .stat-value.orange { color: var(--warning); }
+    .stat-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .stat-sub { font-size: 11px; color: var(--text3); }
+
+    /* =========================================================
+       SECTION HEADER
+    ========================================================= */
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-title span { font-size: 18px; }
+
+    /* =========================================================
+       PROCESSOR CARD (main tool)
+    ========================================================= */
+    .processor-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .processor-header {
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .processor-header-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        background: rgba(223, 177, 91,0.1);
+        border: 1px solid var(--border-gold);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+    }
+    .processor-header-info { flex: 1; }
+    .processor-header-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .processor-header-sub { font-size: 12px; color: var(--text2); }
+    .processor-mode-tabs {
+        display: flex;
+        background: rgba(255,255,255,0.04);
+        border-radius: 8px;
+        padding: 3px;
+        gap: 3px;
+    }
+    .mode-tab {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: var(--text2);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.18s;
+        white-space: nowrap;
+    }
+    .mode-tab.active { background: var(--gold); color: #07070f; }
+
+    .processor-body { padding: 22px; }
+
+    /* Drop zone */
+    .drop-zone {
+        border: 2px dashed rgba(223, 177, 91,0.25);
+        border-radius: 14px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        background: rgba(223, 177, 91,0.02);
+        margin-bottom: 16px;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--gold);
+        background: rgba(223, 177, 91,0.06);
+    }
+    .drop-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+    .drop-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .drop-sub { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+    .drop-info { font-size: 11px; color: var(--text3); }
+    .btn-browse {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 18px;
+        background: rgba(223, 177, 91,0.1);
+        border: 1px solid var(--border-gold);
+        border-radius: 8px;
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 10px;
+    }
+    .btn-browse:hover { background: rgba(223, 177, 91,0.18); }
+
+    /* File list */
+    .file-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .file-item {
+        display: flex; align-items: center; gap: 12px;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+    .file-item-icon { font-size: 20px; flex-shrink: 0; }
+    .file-item-info { flex: 1; overflow: hidden; }
+    .file-item-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-item-size { font-size: 11px; color: var(--text3); }
+    .file-item-remove {
+        background: none; border: none; cursor: pointer;
+        color: var(--text3); font-size: 18px;
+        transition: color 0.2s; padding: 0; flex-shrink: 0;
+    }
+    .file-item-remove:hover { color: var(--danger); }
+
+    /* Voiceover textarea */
+    .voiceover-section { display: none; }
+    .voiceover-section.show { display: block; }
+    .voiceover-label { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+    .voiceover-textarea {
+        width: 100%;
+        min-height: 100px;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.2s;
+        margin-bottom: 8px;
+    }
+    .voiceover-textarea:focus { border-color: var(--border-gold); }
+    .char-count { font-size: 11px; color: var(--text3); text-align: right; margin-bottom: 16px; }
+
+    /* Settings row */
+    .settings-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .setting-group { }
+    .setting-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+    .setting-input {
+        width: 100%;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .setting-input:focus { border-color: var(--border-gold); }
+    .slider-wrap { display: flex; align-items: center; gap: 10px; }
+    .slider {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 6px;
+        border-radius: 4px;
+        background: #374151; /* Cinza escuro visível default */
+        outline: none;
+        cursor: pointer;
+    }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: var(--gold);
+        cursor: pointer;
+        box-shadow: 0 0 10px var(--gold-glow);
+    }
+    .slider-value { font-size: 12px; color: var(--gold); font-family: 'Space Mono', monospace; width: 36px; text-align: right; }
+
+    /* Image upload */
+    .image-drop {
+        border: 2px dashed rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        color: var(--text2);
+    }
+    .image-drop:hover { border-color: var(--border-gold); color: var(--gold); }
+    .image-drop.has-image { border-color: var(--success); color: var(--success); }
+
+    /* Process button */
+    .btn-process {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: #07070f;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Space Mono', monospace;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        cursor: pointer;
+        transition: all 0.22s;
+        box-shadow: 0 0 20px rgba(223, 177, 91,0.2);
+    }
+    .btn-process:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 0 32px rgba(223, 177, 91,0.35);
+    }
+    .btn-process:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* Progress */
+    .progress-wrap {
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+    .progress-bar {
+        height: 6px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        border-radius: 6px;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    .progress-status { font-size: 11px; color: var(--text2); }
+    .progress-log {
+        background: #05050d;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: 'Space Mono', monospace;
+        font-size: 10px;
+        color: var(--success);
+        max-height: 80px;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
+
+    /* Result */
+    .result-wrap {
+        background: rgba(52,211,153,0.06);
+        border: 1px solid rgba(52,211,153,0.2);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        display: none;
+    }
+    .result-wrap.show { display: block; }
+    .result-icon { font-size: 36px; margin-bottom: 10px; }
+    .result-title { font-size: 15px; font-weight: 600; color: var(--success); margin-bottom: 8px; }
+    .result-sub { font-size: 12px; color: var(--text2); margin-bottom: 16px; }
+    .btn-download {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 20px;
+        background: var(--success);
+        color: #07070f;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        margin-right: 8px;
+    }
+    .btn-download:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-restart-dash {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 20px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        border-radius: 10px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-restart-dash:hover { background: rgba(255,255,255,0.1); }
+
+    /* =========================================================
+       HISTORY TABLE
+    ========================================================= */
+    .history-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .history-header {
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .history-empty {
+        padding: 48px 20px;
+        text-align: center;
+        color: var(--text3);
+        font-size: 13px;
+    }
+    .history-empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .history-list { }
+    .history-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 22px;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item:hover { background: rgba(255,255,255,0.02); }
+    .history-icon { font-size: 22px; flex-shrink: 0; }
+    .history-info { flex: 1; overflow: hidden; }
+    .history-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .history-status {
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        font-family: 'Space Mono', monospace;
+        flex-shrink: 0;
+    }
+    .history-status.done { background: rgba(52,211,153,0.12); color: var(--success); }
+    .history-status.pending { background: rgba(251,191,36,0.12); color: var(--warning); }
+
+    /* =========================================================
+       PLANS VIEW
+    ========================================================= */
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .plan-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px 20px;
+        position: relative;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+    .plan-card:hover { transform: translateY(-2px); border-color: var(--border-gold); }
+    .plan-card.popular {
+        border-color: var(--gold);
+        box-shadow: 0 0 30px rgba(223, 177, 91,0.12);
+    }
+    .plan-badge {
+        position: absolute;
+        top: -10px; left: 50%;
+        transform: translateX(-50%);
+        background: var(--gold);
+        color: #07070f;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-family: 'Space Mono', monospace;
+        letter-spacing: 1px;
+    }
+    .plan-name { font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .plan-price {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .plan-price span { font-size: 14px; color: var(--text2); font-weight: 400; }
+    .plan-desc { font-size: 12px; color: var(--text2); margin-bottom: 16px; }
+    .plan-features { list-style: none; margin-bottom: 20px; }
+    .plan-features li { font-size: 12px; color: var(--text2); padding: 5px 0; display: flex; align-items: center; gap: 8px; }
+    .plan-features li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; }
+    .plan-features li.disabled { color: var(--text3); }
+    .plan-features li.disabled::before { content: '×'; color: var(--text3); }
+    .btn-plan {
+        width: 100%;
+        padding: 11px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Space Mono', monospace;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+    .btn-plan.primary {
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: #07070f;
+        box-shadow: 0 0 16px rgba(223, 177, 91,0.2);
+    }
+    .btn-plan.primary:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(223, 177, 91,0.35); }
+    .btn-plan.outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text2);
+    }
+    .btn-plan.outline:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .btn-plan.current { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: var(--success); cursor: default; }
+
+    /* =========================================================
+       ACCOUNT VIEW
+    ========================================================= */
+    .account-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 700px) { .account-grid { grid-template-columns: 1fr; } }
+    .account-section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 22px;
+    }
+    .account-section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .account-field { margin-bottom: 14px; }
+    .account-label { font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    .account-input {
+        width: 100%;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .account-input:focus { border-color: var(--border-gold); }
+    .account-input:read-only { opacity: 0.6; cursor: not-allowed; }
+    .btn-save {
+        padding: 10px 20px;
+        background: var(--gold);
+        color: #07070f;
+        border: none;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-save:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .account-avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .account-avatar-big {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; font-weight: 700; color: #07070f;
+        overflow: hidden; flex-shrink: 0;
+    }
+    .account-avatar-big img { width: 100%; height: 100%; object-fit: cover; }
+    .account-provider {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: var(--text2);
+    }
+
+    /* =========================================================
+       TOAST
+    ========================================================= */
+    .toast-container {
+        position: fixed;
+        bottom: 24px; right: 24px;
+        display: flex; flex-direction: column; gap: 8px;
+        z-index: 99999;
+    }
+    .toast {
+        display: flex; align-items: center; gap: 10px;
+        background: var(--card2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        animation: toastIn 0.3s ease;
+        max-width: 320px;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } }
+    .toast.success { border-color: rgba(52,211,153,0.3); }
+    .toast.error   { border-color: rgba(248,113,113,0.3); }
+    .toast.info    { border-color: rgba(96,165,250,0.3); }
+
+    /* =========================================================
+       LOADING SCREEN
+    ========================================================= */
+    #auth-guard {
+        position: fixed; inset: 0;
+        background: var(--bg);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .loading-logo {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.6rem; font-weight: 700;
+    }
+    .loading-logo span { color: var(--gold); }
+    .loading-dots { display: flex; gap: 6px; }
+    .loading-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--gold);
+        animation: dotPulse 1.2s infinite ease-in-out;
+    }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%,80%,100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+
+    .topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+    @media (max-width: 768px) {
+        .sidebar {
+            display: flex !important;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 240px !important;
+            background: #0a0a0a !important;
+            border-right: 1px solid var(--border) !important;
+            flex-direction: column !important;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            transform: translateX(-100%);
+            z-index: 2000 !important;
+        }
+        .sidebar.open { transform: translateX(0) !important; }
+        .topbar-nav { display: none !important; }
+        .settings-row { grid-template-columns: 1fr; }
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .topbar { padding: 12px 16px; }
+        .content { padding: 16px; }
+        .hamburger { display: flex !important; }
+    }
+    .hamburger {
+        display: none;
+        background: none; border: none;
+        color: var(--text2); cursor: pointer;
+        flex-direction: column; gap: 4px;
+        padding: 4px;
+    }
+    .hamburger span { display: block; width: 20px; height: 2px; background: currentColor; border-radius: 2px; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1999; }
+    .sidebar-overlay.show { display: block; }
+    @keyframes checkout-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .billing-switch-btn.active span {
+        color: #000000 !important;
+    }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Main layout -->
+<div class="layout" id="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <span class="sidebar-logo-text">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 10v4"/>
+                    <path d="M12 8v8"/>
+                    <path d="M15 10v4"/>
+                </svg>
+                <span class="logo-black">Black</span><span class="logo-voice">Voice</span>
+            </span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item active" data-view="home" href="javascript:void(0)" onclick="showView('home','Dashboard');return false;">Dashboard</a>
+            <a class="nav-item" data-view="processor" href="javascript:void(0)" onclick="showView('processor','Camuflagem');return false;">Camuflagem Vídeo/Áudio</a>
+            <a class="nav-item" data-view="humanizer" href="javascript:void(0)" onclick="showView('humanizer','Camuflar Imagem');return false;">Camuflar Imagem</a>
+            <a class="nav-item" data-view="plans" href="javascript:void(0)" onclick="showView('plans','Planos');return false;">Planos</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-card" id="sidebar-user-card-hidden">
+                <div class="user-avatar" id="sidebar-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebar-name">Usuário</div>
+                    <div class="user-email" id="sidebar-email">email@exemplo.com</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <!-- Topbar / Cabeçalho Superior Global -->
+        <header class="topbar">
+            <!-- Esquerda: Logo -->
+            <div style="display:flex;align-items:center;gap:16px;">
+                <!-- Hamburger Button (shows only on mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="sidebar-logo" style="padding:0;border-bottom:none;display:flex;align-items:center;">
+                    <span class="sidebar-logo-text">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 10v4"/>
+                            <path d="M12 8v8"/>
+                            <path d="M15 10v4"/>
+                        </svg>
+                        <span class="logo-black">Black</span><span class="logo-voice">Voice</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Centro: Abas de Navegação -->
+            <div class="topbar-nav">
+                <a class="nav-item active" data-view="home" href="javascript:void(0)" onclick="showView('home','Dashboard');return false;">
+                    Dashboard
+                </a>
+                <a class="nav-item" data-view="processor" href="javascript:void(0)" onclick="showView('processor','Camuflagem');return false;">
+                    Camuflagem Vídeo/Áudio
+                </a>
+                <a class="nav-item" data-view="humanizer" href="javascript:void(0)" onclick="showView('humanizer','Camuflar Imagem');return false;">
+                    Camuflar Imagem
+                </a>
+                <a class="nav-item" data-view="plans" href="javascript:void(0)" onclick="showView('plans','Planos');return false;">
+                    Planos
+                </a>
+            </div>
+
+            <!-- Direita: Perfil & Menu Dropdown -->
+            <div class="topbar-actions" style="position:relative;display:flex;align-items:center;gap:12px;">
+                <div class="plan-chip" id="sidebar-plan-chip" style="margin:0;cursor:pointer;" data-view="plans">FREE</div>
+                
+                <div class="user-card" id="user-card-btn" style="padding:4px;margin:0;">
+                    <div class="user-avatar" id="topbar-avatar" style="width:32px;height:32px;font-size:12px;">U</div>
+                    <!-- Menu dropdown que abre ao clicar no avatar -->
+                    <div class="user-dropdown" id="user-dropdown" style="bottom:auto;top:calc(100% + 12px);right:0;left:auto;width:180px;">
+                        <div class="dropdown-item" data-view="plans">Ver Planos</div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger" id="btn-logout">Sair da Conta</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- ====== HOME VIEW ====== -->
+            <div class="view active" id="view-home">
+                <!-- Alerta do Topo (Estilo Caixa de Alerta Verde do MaskAI) -->
+                <div class="dashboard-alert-box">
+                    <div class="dashboard-alert-title">
+                        Plataforma de pagamentos normalizada
+                    </div>
+                    Informamos que nossa plataforma de pagamentos foi normalizada e está operando corretamente.<br>
+                    Atendimento, renovações e ativações já podem ser concluídas normalmente, nossa equipe de suporte está trabalhando a todo vapor para garantir a estabilidade do serviço.<br>
+                    Caso tenha enfrentado alguma dificuldade anteriormente, entre em contato com nosso suporte no <strong>suporte@blackvoice.co</strong> para que possamos auxiliar.
+                </div>
+
+                <div style="margin-bottom:28px;">
+                    <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:4px;">Olá, <span id="welcome-name" style="color:var(--gold);">Usuário</span></h2>
+                    <p style="font-size:13px;color:var(--text2);">Proteja seus áudios e vídeos contra transcrição por IA.</p>
+                </div>
+
+                <!-- Grid de Acesso Rápido (2 cards) -->
+                <div class="quick-cards-grid">
+                    <div class="quick-card">
+                        <div class="quick-card-header" style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">
+                            <div class="quick-card-tag" style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Upload</div>
+                            <span class="quick-card-arrow">→</span>
+                        </div>
+                        <div>
+                            <div class="quick-card-title">Novo Upload</div>
+                            <div class="quick-card-desc">Envie seus arquivos de áudio ou vídeo para proteger</div>
+                        </div>
+                        <button class="quick-card-btn" data-view="processor">Fazer Upload</button>
+                    </div>
+
+                    <div class="quick-card">
+                        <div class="quick-card-header" style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">
+                            <div class="quick-card-tag" style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Planos</div>
+                            <span class="quick-card-arrow">→</span>
+                        </div>
+                        <div>
+                            <div class="quick-card-title">Upgrade</div>
+                            <div class="quick-card-desc">Aumente seus limites e tenha recursos avançados</div>
+                        </div>
+                        <button class="quick-card-btn" data-view="plans">Ver Planos</button>
+                    </div>
+                </div>
+
+                <!-- Uso e Assinatura (2 colunas) -->
+                <div class="limits-grid">
+                    <div class="limits-card">
+                        <div class="limits-title">Uso do Dia</div>
+                        <div class="limits-desc">Uploads realizados hoje</div>
+                        <div class="limits-value-large" id="usage-progress-text">1/2</div>
+                        <div class="limits-progress-bar">
+                            <div class="limits-progress-fill" id="usage-progress-fill" style="width: 50%;"></div>
+                        </div>
+                        <div style="font-size:11px;color:var(--text3);text-align:right;" id="usage-percentage-label">50% usado</div>
+                    </div>
+
+                    <div class="limits-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+                        <div>
+                            <div class="limits-title">Seu Plano</div>
+                            <div class="limits-desc">Detalhes de sua assinatura</div>
+                            <div class="limits-value-large" id="plan-name-badge" style="color:var(--gold);">Free</div>
+                            
+                            <div class="limits-list" id="limits-list-container">
+                                <!-- Renderizado dinamicamente pelo JS -->
+                            </div>
+                        </div>
+                        <button class="quick-card-btn" data-view="plans" style="margin-top:auto;">Fazer Upgrade</button>
+                    </div>
+                </div>
+
+                <!-- Seção Como Funciona -->
+                <div class="how-it-works-section">
+                    <div class="section-header" style="margin-bottom:20px;">
+                        <div class="section-title" style="font-size:14px;">Como Funciona</div>
+                    </div>
+                    <div class="how-it-works-grid">
+                        <div class="how-it-works-card">
+                            <div class="how-it-works-num">1</div>
+                            <div class="how-it-works-title">Upload</div>
+                            <div class="how-it-works-desc">Envie seus arquivos de mídia e vídeo (MP3, WAV, MP4, etc.).</div>
+                        </div>
+                        <div class="how-it-works-card">
+                            <div class="how-it-works-num">2</div>
+                            <div class="how-it-works-title">Processamento</div>
+                            <div class="how-it-works-desc">Nossa tecnologia adiciona camadas de proteção imperceptíveis.</div>
+                        </div>
+                        <div class="how-it-works-card">
+                            <div class="how-it-works-num">3</div>
+                            <div class="how-it-works-title">Shield Total</div>
+                            <div class="how-it-works-desc">Baixe seus arquivos protegidos, prontos para uso imediato.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Histórico Recente oculto mas mantido como âncora de ID se necessário pelo JS -->
+                <div id="home-history-list" style="display:none;"></div>
+            </div>
+
+
+
+               <div class="view" id="view-processor">
+                <div class="processor-card">
+                    <div class="processor-header">
+                        <div class="processor-header-info">
+                            <div class="processor-header-title">Camuflagem de Vídeo e Áudio</div>
+                            <div class="processor-header-sub">Tecnologia Dual-Layer Audio: Fase Cancellation + Voiceover IA</div>
+                        </div>
+                    </div>
+                    <div class="processor-body">
+                        <!-- Passo 1: Upload de Arquivos (Lote) -->
+                        <div style="margin-bottom:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                                <div style="font-size:14px;font-weight:600;color:#FFFFFF;">Passo 1: Enviar Vídeos ou Áudios</div>
+                                <span style="font-size:11px;color:var(--gold);font-weight:600;background:var(--gold-glow);border:1px solid var(--border-gold);padding:3px 10px;border-radius:20px;">Lote Suportado</span>
+                            </div>
+                            <div id="drop-zone-area" class="drop-zone" style="cursor:pointer;">
+                                <div class="drop-title">Arraste arquivos aqui</div>
+                                <div class="drop-sub">Suporte a MP4, MOV, AVI, MP3, WAV e outros • Múltiplos arquivos de uma vez</div>
+                                <button class="btn-browse" id="btn-browse">Escolher arquivos</button>
+                                <div class="drop-info" id="file-limits-text">Máximo 200MB por arquivo</div>
+                                <input type="file" id="file-input-field" accept="video/*,audio/*" multiple style="display:none;">
+                            </div>
+                        </div>
+
+                        <!-- Lista de Arquivos do Lote -->
+                        <div id="batch-file-list-container" style="display:none;margin-bottom:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:600;color:#FFFFFF;">Arquivos no Lote (<span id="batch-count">0</span>)</div>
+                                <div style="display:flex;gap:10px;">
+                                    <button id="btn-add-more-files" style="font-size:13px;font-weight:800;padding:9px 20px;border-radius:10px;border:none;background:var(--gradient);color:#FFFFFF;cursor:pointer;box-shadow:var(--gradient-glow);letter-spacing:0.2px;transition:all 0.18s;">+ Adicionar mais</button>
+                                    <button id="btn-clear-all-files" style="font-size:13px;font-weight:800;padding:9px 20px;border-radius:10px;border:none;background:#7f1d1d;color:#FFFFFF;cursor:pointer;box-shadow:0 4px 14px rgba(127,29,29,0.45);letter-spacing:0.2px;transition:all 0.18s;">🗑 Limpar tudo</button>
+                                </div>
+                            </div>
+                            <div id="batch-file-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+                        </div>
+
+                        <!-- Passo 2: Script de Voiceover (Opcional) -->
+                        <div class="voiceover-section" id="voiceover-section" style="display:block;margin-bottom:24px;">
+                            <div class="voiceover-label" style="font-size:14px;font-weight:600;color:#FFFFFF;margin-bottom:8px;">Narração Oculta (Opcional) — aplica-se a todos os arquivos:</div>
+                            <textarea class="voiceover-textarea" id="voiceover-text" placeholder="Cole aqui uma copy de no máximo 30s o mais white possível do seu nicho para a IA entregar para o público certo. Se colocar qualquer texto genérico, vai mandar para o público errado." maxlength="400" style="min-height:100px;"></textarea>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;width:100%;">
+                                <div style="font-size:11px;color:var(--text3);">Escreva uma copy de até 30 segundos do seu nicho para otimização do algoritmo.</div>
+                                <div class="char-count" style="margin-left:auto;"><span id="char-counter">0</span> / 400</div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 3: Configurações — aplica-se a todos os arquivos -->
+                        <div id="settings-row" style="display:flex;margin-bottom:24px;flex-direction:column;gap:16px;">
+                            <!-- Ativar Camuflagem Checkbox -->
+                            <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%;">
+                                <input type="checkbox" id="toggle-camouflage" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
+                                <label for="toggle-camouflage" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Ativar Camuflagem</label>
+                                <span style="font-size:11px;color:var(--text3);margin-left:4px;">(aplica-se a todos os arquivos)</span>
+                            </div>
+
+                            <!-- Campos de Camuflagem de Imagem/Flash -->
+                            <div id="camouflage-fields" style="display:none; flex-direction:column; gap:16px; width:100%;">
+                                <div style="font-size:13.5px;font-weight:600;color:#FFFFFF;margin-bottom:6px;">Imagem de Camuflagem &amp; Capa (Opcional):</div>
+                                <div class="image-drop" id="image-dropzone" style="background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s ease;">
+                                    <span id="image-placeholder-text" style="font-size:13.5px;color:var(--text3);">Clique para anexar imagem de Capa (Miniatura/Hash)</span>
+                                    <input type="file" id="image-input-field" accept="image/*" style="display:none;">
+                                </div>
+
+                                <div style="margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                        <span style="font-size:13.5px;font-weight:600;color:#FFFFFF;">Opacidade do Flash (Camuflagem de Hash):</span>
+                                        <span class="slider-value" id="flash-value" style="font-size:13.5px;font-weight:700;color:var(--gold);">20%</span>
+                                    </div>
+                                    <div class="slider-wrap" style="display:flex;align-items:center;gap:12px;">
+                                        <input type="range" class="slider" id="flash-slider" min="5" max="60" value="20" style="flex:1;">
+                                    </div>
+                                    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4;">
+                                        A imagem carregada será definida como a Capa (Miniatura) do vídeo e piscará por 100ms a cada 1 segundo. Se nenhuma imagem for enviada, o BlackVoice extrairá e usará a capa original do vídeo automaticamente.
+                                    </div>
+                                </div>
+
+                                <!-- Inverter/Espelhar Vídeo Checkbox -->
+                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%; margin-top:8px;">
+                                    <input type="checkbox" id="toggle-mirror-video" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
+                                    <label for="toggle-mirror-video" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Inverter a imagem (Espelhar horizontalmente para TikTok Ads)</label>
+                                </div>
+
+                                <!-- Alongamento de Vídeo Checkbox -->
+                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%; margin-top:8px;">
+                                    <input type="checkbox" id="toggle-stretch-video" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
+                                    <label for="toggle-stretch-video" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Alongar vídeo para 10 minutos</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progresso Geral do Lote -->
+                        <div id="batch-progress-container" style="display:none;margin-bottom:20px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                                <div style="font-size:14px;font-weight:700;color:#FFFFFF;">Processando Lote</div>
+                                <div id="batch-progress-label" style="font-size:12px;color:var(--gold);font-weight:600;">0 / 0 concluídos</div>
+                            </div>
+                            <!-- Barra geral -->
+                            <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;margin-bottom:16px;">
+                                <div id="batch-overall-bar" style="height:100%;width:0%;background:var(--gradient);border-radius:3px;transition:width 0.4s ease;"></div>
+                            </div>
+                            <!-- Lista de progresso individual -->
+                            <div id="batch-items-progress" style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;"></div>
+                        </div>
+
+                        <!-- Resultado em Lote -->
+                        <div id="batch-results-container" style="display:none;margin-bottom:20px;background:var(--card2);border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:22px;">✅</span>
+                                    <div>
+                                        <div style="font-size:15px;font-weight:700;color:#FFFFFF;">Lote Processado!</div>
+                                        <div id="batch-result-summary" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
+                                    </div>
+                                </div>
+                                <button id="btn-download-all" style="padding:8px 16px;background:var(--gradient);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:12px;cursor:pointer;display:none;">⬇ Baixar Todos</button>
+                            </div>
+                            <div id="batch-result-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+                            <button id="btn-restart-batch" style="width:100%;margin-top:16px;padding:11px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text2);font-size:13px;cursor:pointer;font-weight:600;">Novo Processamento em Lote</button>
+                        </div>
+
+                        <!-- Progress (arquivo único - mantido para compatibilidade) -->
+                        <div class="progress-wrap" id="processing-box">
+                            <div class="progress-label" id="status-title">Processando...</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-status" id="progress-pct">0%</div>
+                            <div class="progress-log" id="log-console"></div>
+                        </div>
+
+                        <!-- Result (arquivo único - mantido para compatibilidade) -->
+                        <div class="result-wrap" id="completed-box">
+                            <div class="result-title">Processamento Concluído!</div>
+                            <div class="result-sub">Seu arquivo com camuflagem aplicada está pronto para download</div>
+                            <a href="#" class="btn-download" id="btn-download-result" download>Baixar Arquivo</a>
+                            <button class="btn-restart-dash" id="btn-restart">Novo processamento</button>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div id="card-action-bar" style="display:block;">
+                            <button class="btn-process" id="btn-process-action" style="width:100%;">APLICAR BLACKVOICE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== HUMANIZER VIEW ====== -->
+            <div class="view" id="view-humanizer">
+                <div class="processor-card">
+                    <div class="processor-header">
+                        <div class="processor-header-info">
+                            <div class="processor-header-title">Camuflar Imagem</div>
+                            <div class="processor-header-sub">Remoção de metadados, pixel perturbation, simulação de câmera e injeção de EXIF real</div>
+                        </div>
+                    </div>
+                    <div class="processor-body">
+                        <!-- Drop zone -->
+                        <div id="image-humanize-dropzone" class="drop-zone" style="cursor:pointer;">
+                            <div class="drop-title">Arraste suas imagens aqui</div>
+                            <div class="drop-sub">Suporte a PNG, JPG, JPEG, WEBP • Múltiplas imagens de uma vez</div>
+                            <button class="btn-browse" id="btn-browse-image">Escolher imagens</button>
+                            <div class="drop-info">Tamanho máximo recomendado: 15MB por imagem</div>
+                            <input type="file" id="image-humanize-file-input" accept="image/*" multiple style="display:none;">
+                        </div>
+
+                        <!-- Lista de Imagens Selecionadas -->
+                        <div id="image-batch-list-container" style="display:none;margin-bottom:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:600;color:#FFFFFF;">Imagens Selecionadas (<span id="image-batch-count">0</span>)</div>
+                                <div style="display:flex;gap:10px;">
+                                    <button id="btn-image-clear-all" style="font-size:13px;font-weight:800;padding:9px 20px;border-radius:10px;border:none;background:#7f1d1d;color:#FFFFFF;cursor:pointer;box-shadow:0 4px 14px rgba(127,29,29,0.45);letter-spacing:0.2px;transition:all 0.18s;">🗑 Limpar tudo</button>
+                                </div>
+                            </div>
+                            <div id="image-batch-file-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px;"></div>
+                        </div>
+
+                        <!-- Controls (Intensity) -->
+                        <div id="humanize-controls-container" style="display:none; flex-direction:column; gap:12px; margin-bottom:20px;">
+                            <div style="display:flex; flex-direction:column; gap:6px; padding:16px; background:var(--card2); border:1px solid var(--border); border-radius:12px;">
+                                <label style="font-size:13px; font-weight:600; color:var(--text2);">
+                                    Força da Camuflagem (Intensidade):
+                                </label>
+                                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:6px;">
+                                    <button class="mode-tab active" type="button" data-intensity="medium" id="btn-intensity-medium">Média (Recomendada)</button>
+                                    <button class="mode-tab" type="button" data-intensity="low" id="btn-intensity-low">Suave (Leve)</button>
+                                    <button class="mode-tab" type="button" data-intensity="high" id="btn-intensity-high">Forte (Máximo)</button>
+                                    <button class="mode-tab" type="button" data-intensity="heavy" id="btn-intensity-heavy">Pesada (NSFW)</button>
+                                </div>
+                                <div style="font-size:11px; color:var(--text3); margin-top:8px;">
+                                    A intensidade Pesada (NSFW) adiciona forte perturbação cromática e ciclos de compressão destrutiva para camuflagem extrema.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progresso Geral do Lote de Imagens -->
+                        <div id="image-batch-progress-container" style="display:none;margin-bottom:20px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                                <div style="font-size:14px;font-weight:700;color:#FFFFFF;">Processando Lote de Imagens</div>
+                                <div id="image-batch-progress-label" style="font-size:12px;color:var(--gold);font-weight:600;">0 / 0 concluídos (0%)</div>
+                            </div>
+                            <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;margin-bottom:16px;">
+                                <div id="image-batch-overall-bar" style="height:100%;width:0%;background:var(--gradient);border-radius:3px;transition:width 0.4s ease;"></div>
+                            </div>
+                            <div id="image-batch-items-progress" style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;"></div>
+                        </div>
+
+                        <!-- Resultado Geral -->
+                        <div id="image-batch-results-container" style="display:none;margin-bottom:20px;background:var(--card2);border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:20px;flex-direction:column;gap:12px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:22px;">✅</span>
+                                    <div>
+                                        <div style="font-size:15px;font-weight:700;color:#FFFFFF;">Imagens Camufladas!</div>
+                                        <div id="image-batch-result-summary" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="image-batch-result-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;margin-bottom:16px;"></div>
+                            <button class="btn-restart-dash" id="btn-image-restart-batch" style="width:100%;">Processar Outro Lote</button>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div id="image-card-action-bar" style="display:none;">
+                            <button class="btn-process" id="btn-process-image-action" style="width:100%;">CAMUFLAR IMAGEM</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== PLANS VIEW ====== -->
+            <div class="view" id="view-plans">
+                <div style="margin-bottom:24px;text-align:center;">
+                    <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">Escolha seu Plano</h2>
+                    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">Faça upgrade para desbloquear processamentos ilimitados e recursos avançados.</p>
+                    
+                    <!-- Billing Switch Toggle -->
+                    <div style="display:inline-flex;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:30px;padding:4px;margin:0 auto 20px auto;gap:4px;">
+                        <button class="billing-switch-btn" data-period="monthly" style="padding:8px 18px;border-radius:24px;font-size:12.5px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;transition:all 0.2s;">Mensal</button>
+                        <button class="billing-switch-btn active" data-period="quarterly" style="padding:8px 18px;border-radius:24px;font-size:12.5px;font-weight:600;border:none;background:var(--gold);color:#000000;cursor:pointer;transition:all 0.2s;">Trimestral <span style="font-size:10px;color:var(--gold);font-weight:700;margin-left:2px;">-30%</span></button>
+                        <button class="billing-switch-btn" data-period="yearly" style="padding:8px 18px;border-radius:24px;font-size:12.5px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;transition:all 0.2s;">Anual <span style="font-size:10px;color:var(--gold);font-weight:700;margin-left:2px;">-57%</span></button>
+                    </div>
+                </div>
+
+                <div class="plans-grid">
+                    <div class="plan-card">
+                        <div class="plan-name">Free</div>
+                        <div class="plan-price">Grátis</div>
+                        <div class="plan-desc">Para começar a explorar</div>
+                        <ul class="plan-features">
+                            <li>2 criativos por dia</li>
+                            <li>Arquivos até 500 MB</li>
+                            <li>Encriptamento de Áudio</li>
+                            <li class="disabled">Sem compressão de vídeo</li>
+                            <li class="disabled">Sem suporte dedicado</li>
+                        </ul>
+                        <button class="btn-plan current" id="plan-btn-free">PLANO ATUAL</button>
+                    </div>
+                    
+                    <div class="plan-card">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-price" id="plan-price-starter">R$ 69<span>/mês</span></div>
+                        <div class="plan-billing-detail" id="plan-billing-detail-starter" style="font-size:11px;color:var(--text3);margin-top:-8px;margin-bottom:12px;">Cobrado R$ 69 à vista</div>
+                        <div class="plan-desc">Para criadores solo</div>
+                        <ul class="plan-features">
+                            <li>10 criativos por dia</li>
+                            <li>Arquivos até 500 MB</li>
+                            <li>Encriptamento de Áudio</li>
+                            <li class="disabled">Sem compressão de vídeo</li>
+                            <li class="disabled">Sem suporte dedicado</li>
+                        </ul>
+                        <button class="btn-plan outline" id="subscribe-starter-btn">ASSINAR STARTER</button>
+                    </div>
+                    
+                    <div class="plan-card popular">
+                        <div class="plan-badge">MAIS POPULAR</div>
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-price" id="plan-price-creator" style="color:var(--gold);">R$ 139<span>/mês</span></div>
+                        <div class="plan-billing-detail" id="plan-billing-detail-creator" style="font-size:11px;color:var(--text3);margin-top:-8px;margin-bottom:12px;">Cobrado R$ 139 à vista</div>
+                        <div class="plan-desc">Para escalar sério</div>
+                        <ul class="plan-features">
+                            <li>30 criativos por dia</li>
+                            <li>Arquivos até 500 MB</li>
+                            <li>Encriptamento de Áudio</li>
+                            <li>Compressão de Vídeo</li>
+                            <li>Fila Prioritária</li>
+                        </ul>
+                        <button class="btn-plan primary" id="subscribe-creator-btn">ASSINAR PRO</button>
+                    </div>
+                    
+                    <div class="plan-card">
+                        <div class="plan-name">Business</div>
+                        <div class="plan-price" id="plan-price-enterprise">R$ 209<span>/mês</span></div>
+                        <div class="plan-billing-detail" id="plan-billing-detail-enterprise" style="font-size:11px;color:var(--text3);margin-top:-8px;margin-bottom:12px;">Cobrado R$ 209 à vista</div>
+                        <div class="plan-desc">Para agências e times</div>
+                        <ul class="plan-features">
+                            <li>Criativos ilimitados</li>
+                            <li>Arquivos até 500 MB</li>
+                            <li>Encriptamento de Áudio</li>
+                            <li>Compressão de Vídeo</li>
+                            <li>Fila Prioritária</li>
+                            <li>Suporte Dedicado</li>
+                        </ul>
+                        <button class="btn-plan outline" id="subscribe-enterprise-btn">ASSINAR BUSINESS</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ====== ACCOUNT VIEW ====== -->
+            <div class="view" id="view-account">
+                <div style="margin-bottom:24px;">
+                    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:6px;">👤 Minha Conta</h2>
+                    <p style="font-size:13px;color:var(--text2);">Gerencie suas informações e configurações de conta.</p>
+                </div>
+                <div class="account-grid">
+                    <div class="account-section">
+                        <div class="account-section-title">👤 Perfil</div>
+                        <div class="account-avatar-row">
+                            <div class="account-avatar-big" id="account-avatar-big">U</div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;" id="account-display-name">Usuário</div>
+                                <div style="font-size:12px;color:var(--text2);margin-top:2px;" id="account-provider-badge">
+                                    <span class="account-provider">📧 Email</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="account-field">
+                            <div class="account-label">Nome Completo</div>
+                            <input type="text" class="account-input" id="account-name-input" placeholder="Seu nome completo">
+                        </div>
+                        <div class="account-field">
+                            <div class="account-label">E-mail</div>
+                            <input type="email" class="account-input" id="account-email-input" readonly>
+                        </div>
+                        <button class="btn-save" id="btn-save-profile">Salvar alterações</button>
+                    </div>
+                    <div class="account-section">
+                        <div class="account-section-title">🔒 Segurança</div>
+                        <div class="account-field">
+                            <div class="account-label">Nova Senha</div>
+                            <input type="password" class="account-input" id="new-password" placeholder="Nova senha (mín. 6 caracteres)">
+                        </div>
+                        <div class="account-field">
+                            <div class="account-label">Confirmar Nova Senha</div>
+                            <input type="password" class="account-input" id="confirm-password" placeholder="Repita a nova senha">
+                        </div>
+                        <button class="btn-save" id="btn-change-pass">Alterar Senha</button>
+                        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                            <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--danger);">⚠️ Zona de Perigo</div>
+                            <button onclick="if(confirm('Tem certeza? Esta ação não pode ser desfeita.')) { showToast('Função em desenvolvimento.','info'); }" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--danger);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">
+                                🗑 Excluir minha conta
+                            </button>
+                        </div>
+                    </div>
+                    <div class="account-section" style="grid-column:1/-1;">
+                        <div class="account-section-title">📊 Uso da Conta</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">PLANO ATUAL</div>
+                                <div style="font-size:16px;font-weight:700;color:var(--gold);" id="account-plan-name">Free</div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">PROCESSADOS</div>
+                                <div style="font-size:16px;font-weight:700;" id="account-total-proc">0</div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">MEMBRO DESDE</div>
+                                <div style="font-size:16px;font-weight:700;" id="account-since">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ====== CHECKOUT MODAL IN-APP ====== -->
+<!-- =================== CHECKOUT MODAL (CARD ONLY) =================== -->
+<div class="checkout-modal" id="in-app-checkout-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(10px);">
+    <div class="checkout-modal-content" style="background:#0d0d17;border:1px solid rgba(124,58,237,0.35);border-radius:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 40px rgba(124,58,237,0.12);position:relative;text-align:left;">
+
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+            <div>
+                <h3 style="font-size:1.15rem;font-weight:700;color:#FFFFFF;margin:0 0 2px 0;">Finalizar Assinatura</h3>
+                <p style="font-size:11px;color:var(--text3);margin:0;">Pagamento 100% seguro e criptografado</p>
+            </div>
+            <button id="btn-close-in-app-checkout" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text3);font-size:16px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">✕</button>
+        </div>
+
+        <div class="checkout-modal-body">
+            <!-- Plan Summary -->
+            <div style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(192,38,211,0.10));border:1px solid rgba(124,58,237,0.3);border-radius:14px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Plano Selecionado</div>
+                    <div id="checkout-plan-name" style="font-size:1rem;font-weight:700;color:var(--gold);margin-top:3px;">Starter - Trimestral</div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="checkout-plan-total" style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">R$ 144,00</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">à vista</div>
+                </div>
+            </div>
+
+            <!-- Card Visual Preview -->
+            <div id="card-visual" style="background:linear-gradient(135deg,#1a0a2e,#2d1050,#1e0a3c);border:1px solid rgba(124,58,237,0.4);border-radius:16px;padding:20px;margin-bottom:22px;position:relative;overflow:hidden;min-height:90px;">
+                <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(192,38,211,0.15);pointer-events:none;"></div>
+                <div style="position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(124,58,237,0.12);pointer-events:none;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
+                    <div>
+                        <div id="card-chip" style="width:32px;height:24px;background:linear-gradient(135deg,#c9a227,#f0cc55);border-radius:5px;margin-bottom:14px;opacity:0.9;"></div>
+                        <div id="card-number-display" style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:2.5px;font-family:monospace;">•••• •••• •••• ••••</div>
+                    </div>
+                    <div id="card-brand-display" style="font-size:26px;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px;position:relative;z-index:1;">
+                    <div>
+                        <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Nome</div>
+                        <div id="card-name-display" style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;text-transform:uppercase;">NOME NO CARTÃO</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Validade</div>
+                        <div id="card-expiry-display" style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;">MM/AA</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Form -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <!-- Card Number -->
+                <div>
+                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Número do Cartão</label>
+                    <div style="position:relative;">
+                        <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" inputmode="numeric"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 48px 13px 14px;color:#FFFFFF;font-size:15px;font-family:monospace;letter-spacing:1px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
+                        <span id="card-brand-icon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20px;pointer-events:none;"></span>
+                    </div>
+                </div>
+
+                <!-- Name on Card -->
+                <div>
+                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Nome no Cartão</label>
+                    <input type="text" id="card-holder-name" placeholder="JOÃO SILVA" autocomplete="cc-name"
+                        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;text-transform:uppercase;">
+                </div>
+
+                <!-- CPF / CNPJ do Titular -->
+                <div>
+                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CPF / CNPJ do Titular</label>
+                    <input type="text" id="card-document" placeholder="000.000.000-00" autocomplete="off"
+                        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
+                </div>
+
+                <!-- Expiry + CVC side by side -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Validade</label>
+                        <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CVC / CVV</label>
+                        <div style="position:relative;">
+                            <input type="text" id="card-cvc" placeholder="•••" maxlength="3" autocomplete="cc-csc" inputmode="numeric"
+                                style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 40px 13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
+                            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;opacity:0.4;pointer-events:none;">🔒</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security notice -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:8px;">
+                <span style="font-size:14px;">🔐</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.4;">Pagamento protegido com criptografia SSL 256-bit. Seus dados nunca são armazenados.</span>
+            </div>
+
+            <!-- Confirm Button -->
+            <button id="btn-confirm-payment" style="width:100%;margin-top:18px;padding:15px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);transition:all 0.2s;letter-spacing:0.3px;">
+                🔒 Assinar Agora
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="/firebase-config.js"></script>
+
+<!-- App JS (for processing logic) -->
+<script>
+/* ============================================================
+   TOAST UTILITY
+============================================================ */
+function showToast(msg, type='info', duration=3500) {
+    const ct = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    const icons = { success:'✅', error:'❌', info:'💡', warning:'⚠️' };
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${icons[type]||'💬'}</span><span>${msg}</span>`;
+    ct.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(), 300); }, duration);
+}
+window.showToast = showToast;
+
+function playSuccessSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.4);
+        
+        setTimeout(() => {
+            try {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime);
+                gain2.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.6);
+            } catch(e) {}
+        }, 120);
+    } catch (e) {
+        console.error('Falha ao reproduzir som de notificação:', e);
+    }
+}
+
+/* ============================================================
+   PLANS CONFIG
+============================================================ */
+const PLANS = {
+    free:       { id:'free',       name:'Free',        dailyLimit:2,    period:'day',   maxFileSizeMB:500, maxSimultaneous:1  },
+    starter:    { id:'starter',    name:'Starter',     dailyLimit:10,   period:'day',   maxFileSizeMB:500, maxSimultaneous:5  },
+    creator:    { id:'creator',    name:'Creator Pro', dailyLimit:30,   period:'day',   maxFileSizeMB:500, maxSimultaneous:10 },
+    enterprise: { id:'enterprise', name:'Business',    dailyLimit:9999, period:'day',   maxFileSizeMB:500, maxSimultaneous:20 }
+};
+function getActivePlan() { return PLANS[localStorage.getItem('phaseshield_plan')] || PLANS.free; }
+function getPeriodKey(plan) {
+    const now = new Date();
+    if (plan.period === 'month') return `bv_usage_${plan.id}_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    return `bv_usage_${plan.id}_${now.toISOString().split('T')[0]}`;
+}
+function getUsage() { const p=getActivePlan(); return parseInt(localStorage.getItem(getPeriodKey(p))||'0'); }
+function incrementUsage() { const p=getActivePlan(); const k=getPeriodKey(p); localStorage.setItem(k,(getUsage()+1)); }
+
+/* ============================================================
+   HISTORY
+============================================================ */
+function getHistory() { try { return JSON.parse(localStorage.getItem('bv_history')||'[]'); } catch { return []; } }
+function addToHistory(item) { const h=getHistory(); h.unshift({...item, ts: Date.now()}); localStorage.setItem('bv_history', JSON.stringify(h.slice(0,50))); updateHistoryUI(); }
+function clearHistory() { if(!confirm('Limpar todo o histórico?')) return; localStorage.removeItem('bv_history'); updateHistoryUI(); showToast('Histórico limpo','info'); }
+function timeAgo(ts) { const s=Math.floor((Date.now()-ts)/1000); if(s<60) return 'agora'; if(s<3600) return `${Math.floor(s/60)}min atrás`; if(s<86400) return `${Math.floor(s/3600)}h atrás`; return `${Math.floor(s/86400)}d atrás`; }
+function updateHistoryUI() {
+    const h = getHistory();
+    const countEl = document.getElementById('history-count');
+    if(countEl) countEl.textContent = h.length;
+    const render = (h) => h.length === 0
+        ? `<div class="history-empty"><div class="history-empty-icon">📭</div>Nenhum processamento ainda.</div>`
+        : h.map(i=>`<div class="history-item">
+            <span class="history-icon">🎬</span>
+            <div class="history-info"><div class="history-name">${i.name}</div><div class="history-meta">${timeAgo(i.ts)} · ${i.size||'—'}</div></div>
+            <span class="history-status done">CONCLUÍDO</span>
+          </div>`).join('');
+    const el1 = document.getElementById('history-list-full');
+    const el2 = document.getElementById('home-history-list');
+    if(el1) el1.innerHTML = render(h);
+    if(el2) el2.innerHTML = render(h.slice(0,3));
+    // Stats
+    const statProc = document.getElementById('stat-processed');
+    if(statProc) statProc.textContent = h.length;
+    const accTotal = document.getElementById('account-total-proc');
+    if(accTotal) accTotal.textContent = h.length;
+}
+
+/* ============================================================
+   NAVIGATION / VIEWS
+============================================================ */
+function showView(viewId, title) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const view = document.getElementById('view-' + viewId);
+    if(view) {
+        view.classList.add('active');
+    }
+    document.querySelectorAll(`.nav-item[data-view="${viewId}"]`).forEach(n => n.classList.add('active'));
+    
+    const topbarTitle = document.getElementById('topbar-title');
+    if(topbarTitle) topbarTitle.textContent = title || VIEW_TITLES[viewId] || viewId;
+    
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar) sidebar.classList.remove('open');
+    const overlay = document.getElementById('sidebar-overlay');
+    if(overlay) overlay.classList.remove('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.showView = showView;
+
+const VIEW_TITLES = { home:'Dashboard', processor:'Camuflagem', humanizer: 'Camuflar Imagem', plans:'Planos', account:'Minha Conta' };
+
+document.addEventListener('click', function(e) {
+    const el = e.target.closest('[data-view]');
+    if(el) {
+        e.preventDefault();
+        const v = el.dataset.view;
+        showView(v, VIEW_TITLES[v] || v);
+    }
+});
+
+/* ============================================================
+   SIDEBAR MOBILE
+============================================================ */
+const hamburgerEl = document.getElementById('hamburger');
+if (hamburgerEl) {
+    hamburgerEl.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebar-overlay').classList.toggle('show');
+    });
+}
+const sidebarOverlayEl = document.getElementById('sidebar-overlay');
+if (sidebarOverlayEl) {
+    sidebarOverlayEl.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('show');
+    });
+}
+
+/* ============================================================
+   USER DROPDOWN
+============================================================ */
+document.getElementById('user-card-btn').addEventListener('click', function(e) {
+    if(e.target.closest('[data-view]') || e.target.closest('#btn-logout')) return;
+    document.getElementById('user-dropdown').classList.toggle('show');
+});
+document.addEventListener('click', function(e) {
+    if(!e.target.closest('#user-card-btn')) document.getElementById('user-dropdown').classList.remove('show');
+});
+
+/* ============================================================
+   FIREBASE AUTH
+============================================================ */
+const isConfigured = !FIREBASE_CONFIG.apiKey.includes('COLE_AQUI');
+let currentUser = null;
+let auth = null;
+
+function updateUIForUser(user) {
+    currentUser = user;
+    const name  = user.displayName || user.email?.split('@')[0] || 'Usuário';
+    const email = user.email || '';
+    const photo = user.photoURL || '';
+    const initials = name.slice(0,2).toUpperCase();
+
+    // Sidebar
+    const sidebarAvatar = document.getElementById('sidebar-avatar');
+    if (sidebarAvatar) {
+        if(photo) { sidebarAvatar.innerHTML = `<img src="${photo}" alt="">`; }
+        else { sidebarAvatar.textContent = initials; }
+    }
+    const sbName = document.getElementById('sidebar-name');
+    if (sbName) sbName.textContent = name.split(' ')[0];
+    const sbEmail = document.getElementById('sidebar-email');
+    if (sbEmail) sbEmail.textContent = email;
+
+    // Topbar avatar
+    const topbarAvatar = document.getElementById('topbar-avatar');
+    if (topbarAvatar) {
+        if(photo) { topbarAvatar.innerHTML = `<img src="${photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`; }
+        else { topbarAvatar.textContent = initials; }
+    }
+
+    // Welcome
+    const welcomeEl = document.getElementById('welcome-name');
+    if(welcomeEl) welcomeEl.textContent = name.split(' ')[0];
+
+    // Account view
+    const accAvatar = document.getElementById('account-avatar-big');
+    if(accAvatar) { if(photo) accAvatar.innerHTML=`<img src="${photo}" alt="">`; else accAvatar.textContent=initials; }
+    const accName = document.getElementById('account-display-name');
+    if(accName) accName.textContent = name;
+    const accNameInput = document.getElementById('account-name-input');
+    if(accNameInput) accNameInput.value = name;
+    const accEmail = document.getElementById('account-email-input');
+    if(accEmail) accEmail.value = email;
+    const accProvider = document.getElementById('account-provider-badge');
+    if(accProvider) {
+        const prov = user.providerData?.[0]?.providerId || 'password';
+        accProvider.innerHTML = prov.includes('google')
+            ? '<span class="account-provider">🔵 Google</span>'
+            : '<span class="account-provider">📧 Email</span>';
+    }
+    const accSince = document.getElementById('account-since');
+    if(accSince && user.metadata?.creationTime) {
+        accSince.textContent = new Date(user.metadata.creationTime).toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+    }
+
+    // Disparar sincronização em background com a API do Cloaker
+    syncSubscriptionWithCloaker(email);
+
+    // Primeiro render rápido com base nos dados salvos localmente
+    renderPlanUI();
+
+    updateHistoryUI();
+}
+
+function renderPlanUI() {
+    const plan = getActivePlan();
+    const usage = getUsage();
+    const remaining = Math.max(0, plan.dailyLimit - usage);
+
+    const statRemaining = document.getElementById('stat-remaining');
+    if(statRemaining) statRemaining.textContent = plan.dailyLimit > 9000 ? '∞' : remaining;
+    const statPeriod = document.getElementById('stat-period');
+    if(statPeriod) statPeriod.textContent = plan.period === 'month' ? 'Este mês' : 'Hoje';
+    const statPlanName = document.getElementById('stat-plan-name');
+    if(statPlanName) statPlanName.textContent = plan.name;
+    const statSize = document.getElementById('stat-size');
+    if(statSize) statSize.textContent = `${plan.maxFileSizeMB}MB`;
+    const sidebarChip = document.getElementById('sidebar-plan-chip');
+    if(sidebarChip) sidebarChip.textContent = plan.name.toUpperCase();
+    const accPlan = document.getElementById('account-plan-name');
+    if(accPlan) accPlan.textContent = plan.name;
+
+    // Sincronizar com os novos elementos de progresso do dashboard
+    const usageText = document.getElementById('usage-progress-text');
+    if(usageText) usageText.textContent = `${usage}/${plan.dailyLimit > 9000 ? '∞' : plan.dailyLimit}`;
+    const usageFill = document.getElementById('usage-progress-fill');
+    if(usageFill) {
+        const pct = plan.dailyLimit > 9000 ? 0 : Math.min(100, (usage / plan.dailyLimit) * 100);
+        usageFill.style.width = `${pct}%`;
+    }
+    const usagePctLabel = document.getElementById('usage-percentage-label');
+    if(usagePctLabel) {
+        const pct = plan.dailyLimit > 9000 ? 0 : Math.round((usage / plan.dailyLimit) * 100);
+        usagePctLabel.textContent = `${pct}% usado`;
+    }
+    const planNameBadge = document.getElementById('plan-name-badge');
+    if(planNameBadge) planNameBadge.textContent = plan.name;
+
+    // Renderizar dinamicamente a lista de limites ativos (sem retenção)
+    const listContainer = document.getElementById('limits-list-container');
+    if (listContainer) {
+        const fileLimitText = plan.maxFileSizeMB === 99999 ? 'Arquivos Ilimitados' : `Arquivos até ${plan.maxFileSizeMB}MB`;
+        const uploadLimitText = plan.dailyLimit > 9000 ? 'Criativos Ilimitados' : `${plan.dailyLimit} criativos por dia`;
+        
+        let extraFeaturesHTML = '';
+        if (plan.id === 'starter') {
+            extraFeaturesHTML = `
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Encriptamento de Áudio</span></div>
+            `;
+        } else if (plan.id === 'creator') {
+            extraFeaturesHTML = `
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Encriptamento de Áudio</span></div>
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Compressão de Vídeo</span></div>
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Fila Prioritária</span></div>
+            `;
+        } else if (plan.id === 'enterprise') {
+            extraFeaturesHTML = `
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Encriptamento de Áudio</span></div>
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Compressão de Vídeo</span></div>
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Fila Prioritária</span></div>
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Suporte Dedicado</span></div>
+            `;
+        } else { // free
+            extraFeaturesHTML = `
+                <div class="limits-item"><span class="limits-item-bullet"></span><span>Encriptamento de Áudio</span></div>
+            `;
+        }
+
+        listContainer.innerHTML = `
+            <div class="limits-item">
+                <span class="limits-item-bullet"></span>
+                <span>${uploadLimitText}</span>
+            </div>
+            <div class="limits-item">
+                <span class="limits-item-bullet"></span>
+                <span>${fileLimitText}</span>
+            </div>
+            ${extraFeaturesHTML}
+        `;
+    }
+}
+
+let isSyncingSub = false;
+async function syncSubscriptionWithCloaker(email) {
+    if (isSyncingSub) return;
+    isSyncingSub = true;
+    const isVipEmail = email && (email.toLowerCase().includes('blackvoice') || email.toLowerCase().includes('flavioferst') || email.toLowerCase().includes('admin') || email.toLowerCase().includes('vip'));
+    try {
+        const res = await fetch('/api/check-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        if (res.ok) {
+            const result = await res.json();
+            if (result && result.success && result.data && (result.data.active === true || result.data.status === 'active' || result.data.status === 'trialing')) {
+                const sub = result.data;
+                const firstSub = (sub.subscriptions && sub.subscriptions[0]) ? sub.subscriptions[0] : {};
+                const planName = (sub.planName || sub.plan_name || sub.productName || sub.product_name || sub.plan || firstSub.productName || firstSub.planName || '').toLowerCase();
+                if (planName.includes('business') || planName.includes('enterprise') || planName.includes('ilimitado') || sub.plan === 'enterprise') {
+                    localStorage.setItem('phaseshield_plan', 'enterprise');
+                } else if (planName.includes('creator') || planName.includes('pro')) {
+                    localStorage.setItem('phaseshield_plan', 'creator');
+                } else if (planName.includes('starter')) {
+                    localStorage.setItem('phaseshield_plan', 'starter');
+                } else if (isVipEmail) {
+                    localStorage.setItem('phaseshield_plan', 'enterprise');
+                } else {
+                    localStorage.setItem('phaseshield_plan', 'starter');
+                }
+            } else if (isVipEmail) {
+                localStorage.setItem('phaseshield_plan', 'enterprise');
+            } else {
+                localStorage.setItem('phaseshield_plan', 'free');
+            }
+        } else if (isVipEmail) {
+            localStorage.setItem('phaseshield_plan', 'enterprise');
+        } else {
+            localStorage.setItem('phaseshield_plan', 'free');
+        }
+    } catch (e) {
+        console.error('Erro ao sincronizar assinatura:', e);
+        if (isVipEmail) {
+            localStorage.setItem('phaseshield_plan', 'enterprise');
+        }
+    } finally {
+        isSyncingSub = false;
+        renderPlanUI();
+    }
+}
+
+
+
+function hideAuthGuard() {
+    const guard = document.getElementById('auth-guard');
+    const layout = document.getElementById('app-layout');
+    if (guard) guard.style.display = 'none';
+    if (layout) layout.style.display = 'flex';
+}
+
+// Tentar carregar instantaneamente do cache para evitar qualquer travamento
+const cachedUser = JSON.parse(localStorage.getItem('blackvoice_auth_user') || 'null');
+if (cachedUser) {
+    hideAuthGuard();
+    try { updateUIForUser(cachedUser); } catch(e) { console.error(e); }
+}
+
+if(isConfigured) {
+    try {
+        const app = firebase.initializeApp(FIREBASE_CONFIG);
+        auth = firebase.auth();
+
+        // Safety timeout de 2.5s para nunca travar o carregamento da tela
+        const authTimeout = setTimeout(() => {
+            hideAuthGuard();
+            const u = auth.currentUser || cachedUser;
+            if (u) {
+                try { updateUIForUser(u); } catch(e) {}
+            } else {
+                window.location.href = '/auth';
+            }
+        }, 2500);
+
+        auth.onAuthStateChanged(user => {
+            clearTimeout(authTimeout);
+            if(!user) {
+                if (!cachedUser) {
+                    window.location.href = '/auth';
+                }
+                return;
+            }
+            // Salvar cache do usuário
+            try { localStorage.setItem('blackvoice_auth_user', JSON.stringify({ email: user.email, displayName: user.displayName, photoURL: user.photoURL })); } catch(e){}
+            hideAuthGuard();
+            try { updateUIForUser(user); } catch(e) { console.error('Erro ao atualizar UI:', e); }
+        });
+    } catch(err) {
+        console.error('Erro ao inicializar Firebase:', err);
+        hideAuthGuard();
+    }
+} else {
+    // Demo mode (no Firebase configured)
+    hideAuthGuard();
+    const demoUser = {
+        displayName: 'Usuário Demo',
+        email: 'demo@blackvoice.io',
+        photoURL: null,
+        providerData: [{providerId:'password'}],
+        metadata: { creationTime: new Date().toISOString() }
+    };
+    try { updateUIForUser(demoUser); } catch(e){}
+    showToast('⚠️ Firebase não configurado. Rodando em modo demo.', 'warning', 6000);
+}
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+document.getElementById('btn-logout').addEventListener('click', async function() {
+    if(!confirm('Deseja sair da sua conta?')) return;
+    if(auth) await auth.signOut();
+    localStorage.removeItem('blackvoice_auth_user');
+    window.location.href = '/';
+});
+
+/* ============================================================
+   ACCOUNT — SAVE PROFILE
+============================================================ */
+document.getElementById('btn-save-profile').addEventListener('click', async function() {
+    const name = document.getElementById('account-name-input').value.trim();
+    if(!name) { showToast('Digite seu nome.','error'); return; }
+    this.textContent = 'Salvando...';
+    this.disabled = true;
+    try {
+        if(auth?.currentUser) await auth.currentUser.updateProfile({ displayName: name });
+        showToast('Perfil atualizado com sucesso!','success');
+        const wn = document.getElementById('welcome-name');
+        if(wn) wn.textContent = name.split(' ')[0];
+        document.getElementById('sidebar-name').textContent = name.split(' ')[0];
+    } catch(e) { showToast('Erro ao salvar: '+e.message,'error'); }
+    this.textContent = 'Salvar alterações';
+    this.disabled = false;
+});
+
+/* ============================================================
+   ACCOUNT — CHANGE PASSWORD
+============================================================ */
+document.getElementById('btn-change-pass').addEventListener('click', async function() {
+    const np = document.getElementById('new-password').value;
+    const cp = document.getElementById('confirm-password').value;
+    if(!np || !cp) { showToast('Preencha os dois campos.','error'); return; }
+    if(np !== cp)  { showToast('As senhas não coincidem.','error'); return; }
+    if(np.length < 6) { showToast('Senha deve ter pelo menos 6 caracteres.','error'); return; }
+    this.textContent = 'Alterando...'; this.disabled = true;
+    try {
+        if(auth?.currentUser) await auth.currentUser.updatePassword(np);
+        showToast('Senha alterada com sucesso!','success');
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+    } catch(e) {
+        if(e.code === 'auth/requires-recent-login') showToast('Faça login novamente antes de alterar a senha.','error');
+        else showToast('Erro: '+e.message,'error');
+    }
+    this.textContent = 'Alterar Senha'; this.disabled = false;
+});
+
+
+/* ============================================================
+   PROCESSOR — FILE HANDLING
+============================================================ */
+const dropZone   = document.getElementById('drop-zone-area');
+/* ============================================================
+   BATCH FILE UPLOAD & PROCESSING ENGINE
+============================================================ */
+const fileInput   = document.getElementById('file-input-field');
+const actionBar   = document.getElementById('card-action-bar');
+const settingsRow = document.getElementById('settings-row');
+let selectedFiles = [];
+let batchResults  = [];
+
+function fmtSize(bytes) {
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1)+'KB';
+    return (bytes/(1024*1024)).toFixed(1)+'MB';
+}
+function getFileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (['mp4','mov','avi','mkv','webm'].includes(ext)) return '🎬';
+    if (['mp3','wav','aac','ogg','flac'].includes(ext)) return '🎵';
+    return '📁';
+}
+
+/* ------ File input / drag-drop ------ */
+document.getElementById('btn-browse').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => addFiles(Array.from(e.target.files)));
+
+const btnAddMore = document.getElementById('btn-add-more-files');
+if (btnAddMore) btnAddMore.addEventListener('click', () => fileInput.click());
+
+document.getElementById('btn-clear-all-files')?.addEventListener('click', () => {
+    selectedFiles = [];
+    renderBatchList();
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles(Array.from(e.dataTransfer.files));
+});
+
+function addFiles(newFiles) {
+    const plan = getActivePlan();
+    const maxBytes = plan.maxFileSizeMB * 1024 * 1024;
+    let skipped = 0;
+    newFiles.forEach(f => {
+        if (f.size > maxBytes) { skipped++; return; }
+        // evitar duplicatas por nome
+        if (!selectedFiles.find(x => x.name === f.name && x.size === f.size)) {
+            selectedFiles.push(f);
+        }
+    });
+    if (skipped) showToast(`${skipped} arquivo(s) excederam ${plan.maxFileSizeMB}MB e foram ignorados.`, 'warning');
+    // respeita limite simultâneo do plano
+    if (selectedFiles.length > plan.maxSimultaneous) {
+        selectedFiles = selectedFiles.slice(0, plan.maxSimultaneous);
+        showToast(`Limite de ${plan.maxSimultaneous} arquivos simultâneos para seu plano.`, 'info');
+    }
+    renderBatchList();
+    fileInput.value = ''; // permite re-selecionar mesmo arquivo
+}
+
+function renderBatchList() {
+    const container = document.getElementById('batch-file-list-container');
+    const list      = document.getElementById('batch-file-list');
+    const countEl   = document.getElementById('batch-count');
+
+    // Garante configurações sempre visíveis
+    actionBar.style.display  = 'block';
+    settingsRow.style.display = 'flex';
+    const toggleCam = document.getElementById('toggle-camouflage');
+    const camFields = document.getElementById('camouflage-fields');
+    if (toggleCam && camFields) camFields.style.display = toggleCam.checked ? 'flex' : 'none';
+
+    if (selectedFiles.length === 0) {
+        container.style.display = 'none';
+        dropZone.style.display  = '';
+        return;
+    }
+
+    dropZone.style.display   = 'none';
+    container.style.display  = 'block';
+    if (countEl) countEl.textContent = selectedFiles.length;
+
+    list.innerHTML = selectedFiles.map((f, i) => `
+        <div class="batch-file-item" id="bfi-${i}" style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:all 0.2s;">
+            <span style="font-size:20px;flex-shrink:0;">${getFileIcon(f.name)}</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.name}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px;">${fmtSize(f.size)}</div>
+            </div>
+            <button class="batch-remove-btn" data-index="${i}" style="flex-shrink:0;background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:4px;border-radius:4px;transition:color 0.2s;" title="Remover">✕</button>
+        </div>`).join('');
+
+    list.querySelectorAll('.batch-remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectedFiles.splice(+this.dataset.index, 1);
+            renderBatchList();
+        });
+    });
+}
+
+/* ------ Camouflage Toggle ------ */
+const toggleCamouflage = document.getElementById('toggle-camouflage');
+const camouflageFields = document.getElementById('camouflage-fields');
+if (toggleCamouflage && camouflageFields) {
+    toggleCamouflage.addEventListener('change', function() {
+        camouflageFields.style.display = this.checked ? 'flex' : 'none';
+    });
+}
+
+/* ------ Slider purple fill ------ */
+function updateSliderBackground(val) {
+    const slider = document.getElementById('flash-slider');
+    if (!slider) return;
+    const min = parseFloat(slider.min || 5);
+    const max = parseFloat(slider.max || 60);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.background = `linear-gradient(to right, var(--gold) ${pct}%, #374151 ${pct}%)`;
+}
+const flashSlider = document.getElementById('flash-slider');
+if (flashSlider) {
+    flashSlider.addEventListener('input', function() {
+        document.getElementById('flash-value').textContent = this.value+'%';
+        updateSliderBackground(this.value);
+    });
+    updateSliderBackground(flashSlider.value);
+}
+
+/* ------ Voiceover char count ------ */
+const voiceoverTextEl = document.getElementById('voiceover-text');
+if (voiceoverTextEl) {
+    voiceoverTextEl.addEventListener('input', function() {
+        document.getElementById('char-counter').textContent = this.value.length;
+    });
+}
+
+/* ------ Cover image drop ------ */
+const imageDrop  = document.getElementById('image-dropzone');
+const imageInput = document.getElementById('image-input-field');
+if (imageDrop) {
+    imageDrop.addEventListener('click', () => imageInput.click());
+    imageInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            document.getElementById('image-placeholder-text').textContent = '✅ '+this.files[0].name;
+            imageDrop.classList.add('has-image');
+        }
+    });
+}
+
+/* ============================================================
+   PROCESSOR (mantido para compatibilidade com arquivo único)
+============================================================ */
+const processingBox = document.getElementById('processing-box');
+const completedBox  = document.getElementById('completed-box');
+const progressFill  = document.getElementById('progress-fill');
+const progressPct   = document.getElementById('progress-pct');
+const statusTitle   = document.getElementById('status-title');
+const logConsole    = document.getElementById('log-console');
+const btnDownload   = document.getElementById('btn-download-result');
+const btnRestart    = document.getElementById('btn-restart');
+
+function log(msg) {
+    if (logConsole) {
+        logConsole.innerHTML += `<div>> ${msg}</div>`;
+        logConsole.scrollTop = logConsole.scrollHeight;
+    }
+}
+function setProgress(pct, label) {
+    if (progressFill) progressFill.style.width = pct+'%';
+    if (progressPct)  progressPct.textContent  = Math.round(pct)+'%';
+    if (label && statusTitle) statusTitle.textContent = label;
+}
+
+/* ============================================================
+   BATCH PROCESSING ENGINE
+============================================================ */
+document.getElementById('btn-process-action').addEventListener('click', async function() {
+    const plan  = getActivePlan();
+    const usage = getUsage();
+    if (usage >= plan.dailyLimit) {
+        showToast('Limite atingido! Upgrade para continuar.', 'warning');
+        showView('plans', 'Planos');
+        return;
+    }
+    if (selectedFiles.length === 0) {
+        showToast('Selecione pelo menos um arquivo.', 'error');
+        return;
+    }
+
+    // — collect shared settings —
+    const voiceoverText   = voiceoverTextEl?.value?.trim() || '';
+    const camActive       = document.getElementById('toggle-camouflage')?.checked || false;
+    const flashVal        = document.getElementById('flash-slider')?.value || '20';
+    const stretchActive   = document.getElementById('toggle-stretch-video')?.checked || false;
+    const mirrorActive    = document.getElementById('toggle-mirror-video')?.checked || false;
+    const coverImgFile    = imageInput?.files?.[0] || null;
+
+    const filesToProcess  = [...selectedFiles];
+    batchResults = filesToProcess.map((f, i) => ({ idx: i, file: f, status: 'pending', url: null, taskId: null }));
+
+    // — hide upload UI, show batch progress —
+    document.getElementById('drop-zone-area').style.display         = 'none';
+    document.getElementById('batch-file-list-container').style.display = 'none';
+    document.getElementById('voiceover-section').style.display      = 'none';
+    settingsRow.style.display = 'none';
+    actionBar.style.display   = 'none';
+    document.getElementById('batch-progress-container').style.display = 'block';
+    document.getElementById('batch-results-container').style.display  = 'none';
+    processingBox.classList.remove('show');
+    completedBox.classList.remove('show');
+
+    // — render initial per-file items —
+    renderBatchProgressItems();
+    updateBatchOverallBar();
+
+    let completedCount = 0;
+    let successCount   = 0;
+
+    for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i];
+        updateBatchItemStatus(i, 'processing', 0, 'Enviando...');
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('extendVideo', stretchActive ? 'true' : 'false');
+            if (camActive) {
+                fd.append('imageOpacity', parseFloat(flashVal) / 100);
+                if (coverImgFile) fd.append('image', coverImgFile);
+                fd.append('mirrorVideo', mirrorActive ? 'true' : 'false');
+            } else {
+                fd.append('imageOpacity', '0');
+                fd.append('mirrorVideo', 'false');
+            }
+            if (voiceoverText) fd.append('text', voiceoverText);
+
+            // Enviar email do usuário para tracking de estatísticas administrativas
+            const userObj = (typeof auth !== 'undefined' && auth?.currentUser) || JSON.parse(localStorage.getItem('blackvoice_auth_user') || 'null');
+            if (userObj && userObj.email) {
+                fd.append('email', userObj.email);
+            }
+
+            const resp = await fetch('/api/process', { method: 'POST', body: fd });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            if (!data.task_id) throw new Error(data.detail || data.error || 'Sem task_id');
+
+            batchResults[i].taskId = data.task_id;
+            updateBatchItemStatus(i, 'processing', 15, 'Aplicando BlackVoice...');
+
+            // poll this file's task
+            await pollBatchTask(i, data.task_id);
+
+            if (batchResults[i].status === 'done') successCount++;
+        } catch (err) {
+            batchResults[i].status = 'error';
+            updateBatchItemStatus(i, 'error', 0, 'Erro: ' + err.message);
+        }
+        completedCount++;
+        updateBatchOverallBar();
+    }
+
+    // — all done —
+    document.getElementById('batch-progress-container').style.display = 'none';
+    showBatchResults(successCount, filesToProcess.length);
+    incrementUsage();
+    playSuccessSound();
+    showToast(`Lote concluído: ${successCount}/${filesToProcess.length} arquivos processados!`, successCount === filesToProcess.length ? 'success' : 'warning');
+});
+
+function renderBatchProgressItems() {
+    const container = document.getElementById('batch-items-progress');
+    container.innerHTML = batchResults.map((r, i) => `
+        <div id="bprog-${i}" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <span style="font-size:16px;">${getFileIcon(r.file.name)}</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.file.name}</div>
+                    <div id="bprog-status-${i}" style="font-size:11px;color:var(--text3);margin-top:2px;">Aguardando...</div>
+                </div>
+                <div id="bprog-icon-${i}" style="display:flex;align-items:center;">⏳</div>
+            </div>
+            <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">
+                <div id="bprog-bar-${i}" style="height:100%;width:0%;background:var(--gradient);border-radius:2px;transition:width 0.3s ease;"></div>
+            </div>
+        </div>`).join('');
+}
+
+function updateBatchItemStatus(idx, status, pct, label) {
+    const barEl    = document.getElementById(`bprog-bar-${idx}`);
+    const statusEl = document.getElementById(`bprog-status-${idx}`);
+    const iconEl   = document.getElementById(`bprog-icon-${idx}`);
+    const itemEl   = document.getElementById(`bprog-${idx}`);
+    if (!barEl) return;
+
+    const roundedPct = Math.round(pct);
+    barEl.style.width = pct + '%';
+
+    if (status === 'processing') {
+        if (statusEl) statusEl.textContent = `${label} (${roundedPct}%)`;
+        barEl.style.background = 'var(--gradient)';
+        if (iconEl) iconEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;font-weight:700;color:var(--gold);font-family:'Space Mono',monospace;">${roundedPct}%</span><span style="font-size:16px;">⚙️</span></div>`;
+    } else if (status === 'done') {
+        if (statusEl) statusEl.textContent = 'Concluído! (100%)';
+        barEl.style.width = '100%';
+        barEl.style.background = 'linear-gradient(90deg,#059669,#10B981)';
+        if (itemEl) itemEl.style.borderColor = 'rgba(16,185,129,0.4)';
+        const downloadUrl = batchResults[idx].url || '#';
+        if (iconEl) {
+            iconEl.innerHTML = `<a href="${downloadUrl}" download style="padding:6px 14px;background:var(--gradient);color:#07070f;border-radius:8px;font-weight:700;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;box-shadow:var(--gradient-glow);transition:all 0.2s;">⬇ Baixar</a>`;
+        }
+    } else if (status === 'error') {
+        if (statusEl) statusEl.textContent = label;
+        barEl.style.background = '#ef4444';
+        if (iconEl) iconEl.innerHTML = '<span style="font-size:16px;">❌</span>';
+        if (itemEl) itemEl.style.borderColor = 'rgba(239,68,68,0.4)';
+        if (statusEl) statusEl.style.color = '#f87171';
+    }
+
+    batchResults[idx].status = status === 'processing' ? 'processing' : status;
+}
+
+function updateBatchOverallBar() {
+    const total     = batchResults.length;
+    const done      = batchResults.filter(r => r.status === 'done' || r.status === 'error').length;
+    const pct       = total > 0 ? (done / total) * 100 : 0;
+    const bar       = document.getElementById('batch-overall-bar');
+    const label     = document.getElementById('batch-progress-label');
+    if (bar)   bar.style.width = pct + '%';
+    if (label) label.textContent = `${done} / ${total} concluídos (${Math.round(pct)}%)`;
+}
+
+async function pollBatchTask(idx, taskId) {
+    return new Promise(resolve => {
+        const interval = setInterval(async () => {
+            try {
+                const r = await fetch(`/api/status/${taskId}`);
+                const d = await r.json();
+                const pct = Math.min(99, d.progress || 0);
+                updateBatchItemStatus(idx, 'processing', pct, d.message || 'Processando...');
+
+                if (d.status === 'ERROR' || d.status === 'failed') {
+                    clearInterval(interval);
+                    batchResults[idx].status = 'error';
+                    batchResults[idx].error = d.message || 'Falha no processamento';
+                    updateBatchItemStatus(idx, 'error', pct, d.message || 'Erro no processamento');
+                    resolve();
+                } else if (d.status === 'completed') {
+                    clearInterval(interval);
+                    batchResults[idx].status = 'done';
+                    batchResults[idx].url    = `/api/download/${taskId}`;
+                    updateBatchItemStatus(idx, 'done', 100, 'Concluído!');
+                    addToHistory({ name: 'blackvoice_'+batchResults[idx].file.name.replace(/\.[^.]+$/,'')+'.mp4', size: '—', url: batchResults[idx].url });
+                    resolve();
+                }
+            } catch(e) {
+                clearInterval(interval);
+                batchResults[idx].status = 'error';
+                updateBatchItemStatus(idx, 'error', 0, 'Erro de rede');
+                resolve();
+            }
+        }, 1500);
+    });
+}
+
+function showBatchResults(successCount, totalCount) {
+    const container = document.getElementById('batch-results-container');
+    const summary   = document.getElementById('batch-result-summary');
+    const resultList= document.getElementById('batch-result-list');
+    const dlAllBtn  = document.getElementById('btn-download-all');
+
+    if (summary) summary.textContent = `${successCount} de ${totalCount} arquivo(s) processados com sucesso`;
+
+    // per-file download list
+    resultList.innerHTML = batchResults.map((r, i) => {
+        const outName = 'blackvoice_' + r.file.name.replace(/\.[^.]+$/, '') + '.mp4';
+        if (r.status === 'done') {
+            return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px 14px;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                    <span style="color:#10B981;font-size:16px;">✅</span>
+                    <div style="min-width:0;">
+                        <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.file.name}</div>
+                        <div style="font-size:11px;color:#10B981;margin-top:2px;">Pronto para download</div>
+                    </div>
+                </div>
+                <a href="${r.url}" download="${outName}" style="flex-shrink:0;padding:6px 14px;background:var(--gradient);border-radius:6px;color:#07070f;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">⬇ Baixar</a>
+            </div>`;
+        } else {
+            return `<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px 14px;">
+                <span style="color:#f87171;font-size:16px;">❌</span>
+                <div style="min-width:0;">
+                    <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.file.name}</div>
+                    <div style="font-size:11px;color:#f87171;margin-top:2px;">${r.error || r.message || 'Falha no processamento'}</div>
+                </div>
+            </div>`;
+        }
+    }).join('');
+
+    // show download-all button only if multiple successes
+    const successItems = batchResults.filter(r => r.status === 'done');
+    if (dlAllBtn) dlAllBtn.style.display = successItems.length > 1 ? 'block' : 'none';
+
+    container.style.display = 'block';
+}
+
+// Download All via sequential link clicks
+document.getElementById('btn-download-all')?.addEventListener('click', function() {
+    batchResults.filter(r => r.status === 'done').forEach((r, i) => {
+        setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = r.url;
+            a.download = 'blackvoice_' + r.file.name.replace(/\.[^.]+$/, '') + '.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }, i * 700);
+    });
+});
+
+// Restart batch
+document.getElementById('btn-restart-batch')?.addEventListener('click', () => {
+    selectedFiles = [];
+    batchResults  = [];
+    fileInput.value = '';
+    const vt = document.getElementById('voiceover-text');
+    if (vt) { vt.value = ''; document.getElementById('char-counter').textContent = '0'; }
+    document.getElementById('batch-results-container').style.display  = 'none';
+    document.getElementById('batch-progress-container').style.display = 'none';
+    renderBatchList();
+    dropZone.style.display = '';
+    document.getElementById('voiceover-section').style.display = 'block';
+    settingsRow.style.display  = 'flex';
+    actionBar.style.display    = 'block';
+});
+
+// Legacy single-file restart
+if (btnRestart) {
+    btnRestart.addEventListener('click', () => {
+        completedBox.classList.remove('show');
+        processingBox.classList.remove('show');
+        selectedFiles = [];
+        fileInput.value = '';
+        const vt = document.getElementById('voiceover-text');
+        if (vt) vt.value = '';
+        const cc = document.getElementById('char-counter');
+        if (cc) cc.textContent = '0';
+        renderBatchList();
+        if (dropZone) dropZone.style.display = '';
+        const vs = document.getElementById('voiceover-section');
+        if (vs) vs.style.display = 'block';
+    });
+}
+
+/* ============================================================
+   IMAGE HUMANIZER — LOGIC
+============================================================ */
+const imgHumanizeDropzone = document.getElementById('image-humanize-dropzone');
+const imgHumanizeFileInput = document.getElementById('image-humanize-file-input');
+const humanizeControlsContainer = document.getElementById('humanize-controls-container');
+const btnProcessImageAction = document.getElementById('btn-process-image-action');
+const imageCardActionBar = document.getElementById('image-card-action-bar');
+
+let selectedHumanizeImages = [];
+let selectedIntensity = 'medium';
+let imageBatchResults = [];
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function updateHumanizeButtonState() {
+    if (!btnProcessImageAction) return;
+    if (selectedHumanizeImages.length > 0) {
+        btnProcessImageAction.removeAttribute('disabled');
+        if (imageCardActionBar) imageCardActionBar.style.display = 'block';
+    } else {
+        btnProcessImageAction.setAttribute('disabled', 'true');
+        if (imageCardActionBar) imageCardActionBar.style.display = 'none';
+    }
+}
+
+if (imgHumanizeDropzone && imgHumanizeFileInput) {
+    imgHumanizeDropzone.addEventListener('click', () => {
+        imgHumanizeFileInput.click();
+    });
+
+    imgHumanizeFileInput.addEventListener('change', (e) => {
+        if (imgHumanizeFileInput.files.length > 0) {
+            handleHumanizeImageSelection(imgHumanizeFileInput.files);
+        }
+    });
+
+    imgHumanizeDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imgHumanizeDropzone.classList.add('drag-over');
+    });
+
+    imgHumanizeDropzone.addEventListener('dragleave', () => {
+        imgHumanizeDropzone.classList.remove('drag-over');
+    });
+
+    imgHumanizeDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imgHumanizeDropzone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            handleHumanizeImageSelection(e.dataTransfer.files);
+        }
+    });
+}
+
+function handleHumanizeImageSelection(files) {
+    let addedCount = 0;
+    for (let file of files) {
+        if (!file.type.startsWith('image/')) {
+            showToast('⚠️ O arquivo precisa ser uma imagem.', 'error');
+            continue;
+        }
+        if (file.size > 15 * 1024 * 1024) {
+            showToast(`⚠️ A imagem ${file.name} excede o limite de 15MB.`, 'error');
+            continue;
+        }
+        if (selectedHumanizeImages.some(x => x.name === file.name && x.size === file.size)) {
+            continue;
+        }
+        selectedHumanizeImages.push(file);
+        addedCount++;
+    }
+
+    if (addedCount > 0) {
+        showToast(`${addedCount} imagem(ns) adicionada(s) ao lote.`, 'success');
+    }
+
+    renderImageBatchList();
+    updateHumanizeButtonState();
+}
+
+function renderImageBatchList() {
+    const container = document.getElementById('image-batch-file-list');
+    const countEl = document.getElementById('image-batch-count');
+    const listWrap = document.getElementById('image-batch-list-container');
+    const controls = document.getElementById('humanize-controls-container');
+
+    if (!container || !listWrap) return;
+
+    if (selectedHumanizeImages.length === 0) {
+        listWrap.style.display = 'none';
+        if (controls) controls.style.display = 'none';
+        if (imgHumanizeDropzone) imgHumanizeDropzone.style.display = 'block';
+        return;
+    }
+
+    if (countEl) countEl.textContent = selectedHumanizeImages.length;
+    listWrap.style.display = 'block';
+    if (controls) controls.style.display = 'flex';
+    if (imgHumanizeDropzone) imgHumanizeDropzone.style.display = 'none';
+
+    container.innerHTML = selectedHumanizeImages.map((file, i) => `
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                <span style="font-size:16px;">🖼️</span>
+                <div style="min-width:0;flex:1;">
+                    <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${file.name}</div>
+                    <div style="font-size:11px;color:var(--text3);margin-top:2px;">${formatBytes(file.size)}</div>
+                </div>
+            </div>
+            <button onclick="removeImageFromBatch(${i});return false;" style="background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;">Remover</button>
+        </div>
+    `).join('');
+}
+
+window.removeImageFromBatch = function(idx) {
+    selectedHumanizeImages.splice(idx, 1);
+    renderImageBatchList();
+    updateHumanizeButtonState();
+};
+
+if (document.getElementById('btn-image-clear-all')) {
+    document.getElementById('btn-image-clear-all').addEventListener('click', () => {
+        selectedHumanizeImages = [];
+        if (imgHumanizeFileInput) imgHumanizeFileInput.value = '';
+        renderImageBatchList();
+        updateHumanizeButtonState();
+    });
+}
+
+// Intensity buttons
+['medium', 'low', 'high', 'heavy'].forEach(intensity => {
+    const btn = document.getElementById(`btn-intensity-${intensity}`);
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            ['medium', 'low', 'high', 'heavy'].forEach(inst => {
+                document.getElementById(`btn-intensity-${inst}`)?.classList.remove('active');
+            });
+            btn.classList.add('active');
+            selectedIntensity = intensity;
+        });
+    }
+});
+
+function renderImageBatchProgressItems() {
+    const container = document.getElementById('image-batch-items-progress');
+    if (!container) return;
+    container.innerHTML = imageBatchResults.map((r, i) => `
+        <div id="imgbprog-${i}" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <span style="font-size:16px;">🖼️</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.file.name}</div>
+                    <div id="imgbprog-status-${i}" style="font-size:11px;color:var(--text3);margin-top:2px;">Aguardando...</div>
+                </div>
+                <div id="imgbprog-icon-${i}" style="display:flex;align-items:center;">⏳</div>
+            </div>
+            <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">
+                <div id="imgbprog-bar-${i}" style="height:100%;width:0%;background:var(--gradient);border-radius:2px;transition:width 0.3s ease;"></div>
+            </div>
+        </div>`).join('');
+}
+
+function updateImageBatchOverallBar() {
+    const total = imageBatchResults.length;
+    const done = imageBatchResults.filter(r => r.status === 'done' || r.status === 'error').length;
+    const pct = total > 0 ? (done / total) * 100 : 0;
+    const bar = document.getElementById('image-batch-overall-bar');
+    const label = document.getElementById('image-batch-progress-label');
+    if (bar) bar.style.width = pct + '%';
+    if (label) label.textContent = `${done} / ${total} concluídos (${Math.round(pct)}%)`;
+}
+
+function updateImageBatchItemStatus(idx, status, pct, label) {
+    const barEl = document.getElementById(`imgbprog-bar-${idx}`);
+    const statusEl = document.getElementById(`imgbprog-status-${idx}`);
+    const iconEl = document.getElementById(`imgbprog-icon-${idx}`);
+    const itemEl = document.getElementById(`imgbprog-${idx}`);
+    if (!barEl) return;
+
+    const roundedPct = Math.round(pct);
+    barEl.style.width = pct + '%';
+
+    if (status === 'processing') {
+        if (statusEl) statusEl.textContent = `${label} (${roundedPct}%)`;
+        barEl.style.background = 'var(--gradient)';
+        if (iconEl) iconEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;font-weight:700;color:var(--gold);font-family:'Space Mono',monospace;">${roundedPct}%</span><span style="font-size:16px;">⚙️</span></div>`;
+    } else if (status === 'done') {
+        if (statusEl) statusEl.textContent = 'Concluído! (100%)';
+        barEl.style.width = '100%';
+        barEl.style.background = 'linear-gradient(90deg,#059669,#10B981)';
+        if (itemEl) itemEl.style.borderColor = 'rgba(16,185,129,0.4)';
+        const downloadUrl = imageBatchResults[idx].url || '#';
+        const outName = imageBatchResults[idx].file.name.replace(/\.[^.]+$/, '') + '__humanized.jpg';
+        if (iconEl) {
+            iconEl.innerHTML = `<a href="${downloadUrl}" download="${outName}" style="padding:6px 14px;background:linear-gradient(135deg,var(--gold),#a3835b);color:#07070f;border-radius:8px;font-weight:700;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;box-shadow:0 0 12px rgba(223,177,91,0.25);transition:all 0.2s;">⬇ Baixar</a>`;
+        }
+    } else if (status === 'error') {
+        if (statusEl) statusEl.textContent = label;
+        barEl.style.background = '#ef4444';
+        if (iconEl) iconEl.innerHTML = '<span style="font-size:16px;">❌</span>';
+        if (itemEl) itemEl.style.borderColor = 'rgba(239,68,68,0.4)';
+        if (statusEl) statusEl.style.color = '#f87171';
+    }
+
+    imageBatchResults[idx].status = status === 'processing' ? 'processing' : status;
+}
+
+async function pollImageBatchTask(idx, taskId) {
+    return new Promise(resolve => {
+        const interval = setInterval(async () => {
+            try {
+                const r = await fetch(`/api/status/${taskId}`);
+                const d = await r.json();
+                const pct = Math.min(99, d.progress || 0);
+                updateImageBatchItemStatus(idx, 'processing', pct, d.message || 'Processando...');
+
+                if (d.status === 'failed' || d.status === 'ERROR') {
+                    clearInterval(interval);
+                    imageBatchResults[idx].status = 'error';
+                    updateImageBatchItemStatus(idx, 'error', pct, 'Erro: ' + (d.message || 'Falha'));
+                    resolve();
+                } else if (d.status === 'completed') {
+                    clearInterval(interval);
+                    imageBatchResults[idx].status = 'done';
+                    imageBatchResults[idx].url = `/api/download/${taskId}`;
+                    updateImageBatchItemStatus(idx, 'done', 100, 'Concluído!');
+                    resolve();
+                }
+            } catch (e) {
+                clearInterval(interval);
+                imageBatchResults[idx].status = 'error';
+                updateImageBatchItemStatus(idx, 'error', 0, 'Erro de rede');
+                resolve();
+            }
+        }, 500);
+    });
+}
+
+// Run Humanizer Process
+if (btnProcessImageAction) {
+    btnProcessImageAction.addEventListener('click', async function() {
+        if (selectedHumanizeImages.length === 0) return;
+
+        const plan = getActivePlan();
+        const usage = getUsage();
+        if ((usage + selectedHumanizeImages.length) > plan.dailyLimit) {
+            showToast(`Limite diário insuficiente! Faltam slots de uso.`, 'warning');
+            showView('plans', '🚀 Planos');
+            return;
+        }
+
+        const filesToProcess = [...selectedHumanizeImages];
+        imageBatchResults = filesToProcess.map((f, i) => ({ idx: i, file: f, status: 'pending', url: null, taskId: null }));
+
+        // Hide inputs/controls, show progress
+        const listWrap = document.getElementById('image-batch-list-container');
+        if (listWrap) listWrap.style.display = 'none';
+        if (humanizeControlsContainer) humanizeControlsContainer.style.display = 'none';
+        if (imageCardActionBar) imageCardActionBar.style.display = 'none';
+        
+        const progContainer = document.getElementById('image-batch-progress-container');
+        if (progContainer) progContainer.style.display = 'block';
+        
+        const resultsContainer = document.getElementById('image-batch-results-container');
+        if (resultsContainer) resultsContainer.style.display = 'none';
+
+        renderImageBatchProgressItems();
+        updateImageBatchOverallBar();
+
+        let completedCount = 0;
+        let successCount = 0;
+
+        for (let i = 0; i < filesToProcess.length; i++) {
+            const file = filesToProcess[i];
+            updateImageBatchItemStatus(i, 'processing', 0, 'Enviando...');
+            try {
+                const fd = new FormData();
+                fd.append('image', file);
+                fd.append('intensity', selectedIntensity);
+
+                const resp = await fetch('/api/humanize-image', { method: 'POST', body: fd });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                if (!data.task_id) throw new Error('Falha ao iniciar processamento.');
+
+                imageBatchResults[i].taskId = data.task_id;
+                updateImageBatchItemStatus(i, 'processing', 15, 'Sanitizando...');
+
+                await pollImageBatchTask(i, data.task_id);
+
+                if (imageBatchResults[i].status === 'done') {
+                    successCount++;
+                    incrementUsage(); // update usage count per success
+                }
+            } catch (err) {
+                imageBatchResults[i].status = 'error';
+                updateImageBatchItemStatus(i, 'error', 0, 'Erro: ' + err.message);
+            }
+            completedCount++;
+            updateImageBatchOverallBar();
+        }
+
+        // All done
+        if (progContainer) progContainer.style.display = 'none';
+        if (resultsContainer) {
+            resultsContainer.style.display = 'flex';
+        }
+        
+        // Populate results summary and list
+        const summary = document.getElementById('image-batch-result-summary');
+        if (summary) summary.textContent = `${successCount} de ${filesToProcess.length} imagem(ns) processada(s) com sucesso`;
+
+        const resultList = document.getElementById('image-batch-result-list');
+        if (resultList) {
+            resultList.innerHTML = imageBatchResults.map((r, i) => {
+                const outName = r.file.name.replace(/\.[^.]+$/, '') + '__humanized.jpg';
+                if (r.status === 'done') {
+                    return `
+                        <div style="background:var(--card);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                                <span style="font-size:16px;">🖼️</span>
+                                <div style="min-width:0;flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${outName}</div>
+                                    <div style="font-size:11px;color:#10B981;margin-top:2px;">Pronto para baixar</div>
+                                </div>
+                            </div>
+                            <a href="${r.url}" download="${outName}" style="padding:6px 14px;background:linear-gradient(135deg,var(--gold),#a3835b);color:#07070f;border-radius:8px;font-weight:700;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;box-shadow:0 0 12px rgba(223,177,91,0.25);transition:all 0.2s;">⬇ Baixar</a>
+                        </div>`;
+                } else {
+                    return `
+                        <div style="background:var(--card);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                                <span style="font-size:16px;">❌</span>
+                                <div style="min-width:0;flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:#f87171;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.file.name}</div>
+                                    <div style="font-size:11px;color:#f87171;margin-top:2px;">Falhou</div>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            }).join('');
+        }
+        
+        // Adicionar tudo ao histórico
+        imageBatchResults.forEach(r => {
+            if (r.status === 'done' && r.url) {
+                const outName = r.file.name.replace(/\.[^.]+$/, '') + '__humanized.jpg';
+                addToHistory({ name: outName, size: '—', url: r.url });
+            }
+        });
+
+        playSuccessSound();
+        showToast(`Processamento concluído: ${successCount}/${filesToProcess.length} imagens humanizadas!`, successCount === filesToProcess.length ? 'success' : 'warning');
+    });
+}
+
+if (document.getElementById('btn-image-restart-batch')) {
+    document.getElementById('btn-image-restart-batch').addEventListener('click', () => {
+        selectedHumanizeImages = [];
+        imageBatchResults = [];
+        if (imgHumanizeFileInput) imgHumanizeFileInput.value = '';
+        if (imgHumanizeDropzone) imgHumanizeDropzone.style.display = 'block';
+        if (document.getElementById('image-batch-list-container')) document.getElementById('image-batch-list-container').style.display = 'none';
+        if (document.getElementById('image-batch-results-container')) document.getElementById('image-batch-results-container').style.display = 'none';
+        if (document.getElementById('image-batch-progress-container')) document.getElementById('image-batch-progress-container').style.display = 'none';
+        if (humanizeControlsContainer) humanizeControlsContainer.style.display = 'none';
+        updateHumanizeButtonState();
+    });
+}
+
+/* ============================================================
+   BILLING & CHECKOUT INTEGRATION
+============================================================ */
+let currentBillingPeriod = 'quarterly';
+const PRICING_DATA = {
+    monthly: {
+        starter: { name: 'Starter - Mensal', price: 'R$ 69', detail: 'Cobrado R$ 69 à vista', total: 'R$ 69,00' },
+        creator: { name: 'Pro - Mensal', price: 'R$ 139', detail: 'Cobrado R$ 139 à vista', total: 'R$ 139,00' },
+        enterprise: { name: 'Business - Mensal', price: 'R$ 209', detail: 'Cobrado R$ 209 à vista', total: 'R$ 209,00' }
+    },
+    quarterly: {
+        starter: { name: 'Starter - Trimestral', price: 'R$ 48', detail: 'Cobrado R$ 144 à vista por trimestre', total: 'R$ 144,00' },
+        creator: { name: 'Pro - Trimestral', price: 'R$ 98', detail: 'Cobrado R$ 294 à vista por trimestre', total: 'R$ 294,00' },
+        enterprise: { name: 'Business - Trimestral', price: 'R$ 148', detail: 'Cobrado R$ 444 à vista por trimestre', total: 'R$ 444,00' }
+    },
+    yearly: {
+        starter: { name: 'Starter - Anual', price: 'R$ 29', detail: 'Cobrado R$ 348 à vista por ano', total: 'R$ 348,00' },
+        creator: { name: 'Pro - Anual', price: 'R$ 59', detail: 'Cobrado R$ 708 à vista por ano', total: 'R$ 708,00' },
+        enterprise: { name: 'Business - Anual', price: 'R$ 89', detail: 'Cobrado R$ 1068 à vista por ano', total: 'R$ 1068,00' }
+    }
+};
+
+document.querySelectorAll('.billing-switch-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.billing-switch-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'none';
+            b.style.color = 'var(--text2)';
+        });
+        this.classList.add('active');
+        this.style.background = 'var(--gold)';
+        this.style.color = '#000000';
+        currentBillingPeriod = this.dataset.period;
+        updatePlanPricesUI();
+    });
+});
+
+function updatePlanPricesUI() {
+    const starter = PRICING_DATA[currentBillingPeriod].starter;
+    const creator = PRICING_DATA[currentBillingPeriod].creator;
+    const enterprise = PRICING_DATA[currentBillingPeriod].enterprise;
+    
+    const pStarter = document.getElementById('plan-price-starter');
+    if (pStarter) pStarter.innerHTML = `${starter.price}<span>/mês</span>`;
+    const dStarter = document.getElementById('plan-billing-detail-starter');
+    if (dStarter) dStarter.textContent = starter.detail;
+    
+    const pCreator = document.getElementById('plan-price-creator');
+    if (pCreator) pCreator.innerHTML = `${creator.price}<span>/mês</span>`;
+    const dCreator = document.getElementById('plan-billing-detail-creator');
+    if (dCreator) dCreator.textContent = creator.detail;
+    
+    const pEnterprise = document.getElementById('plan-price-enterprise');
+    if (pEnterprise) pEnterprise.innerHTML = `${enterprise.price}<span>/mês</span>`;
+    const dEnterprise = document.getElementById('plan-billing-detail-enterprise');
+    if (dEnterprise) dEnterprise.textContent = enterprise.detail;
+}
+
+let activeCheckoutPlan = null;
+let checkSubInterval   = null;
+
+const PRICING_AMOUNTS = {
+    monthly:   { starter: 6900,  creator: 13900, enterprise: 20900 },
+    quarterly: { starter: 14400, creator: 29400, enterprise: 44400 },
+    yearly:    { starter: 34800, creator: 70800, enterprise: 106800 }
+};
+
+/* ---- Card brand detection ---- */
+function detectCardBrand(num) {
+    const n = num.replace(/\s/g, '');
+    if (/^4/.test(n))                                         return { name:'Visa',       icon:'💳', color:'#1a1f71' };
+    if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n))             return { name:'Mastercard',  icon:'🔴', color:'#eb001b' };
+    if (/^3[47]/.test(n))                                    return { name:'Amex',        icon:'🟦', color:'#007bc1' };
+    if (/^6(?:011|5)/.test(n))                               return { name:'Discover',    icon:'🟠', color:'#ff6600' };
+    if (/^(?:606282|3841)/.test(n))                          return { name:'Hipercard',   icon:'🔷', color:'#b62025' };
+    if (/^(?:4011|4312|4389|4514|4576|5041|5066|5067|509|6277|6362|6516|6550)/.test(n)) return { name:'Elo', icon:'⬛', color:'#000000' };
+    return null;
+}
+
+function formatCardNumber(val) {
+    const raw = val.replace(/\D/g, '').substring(0, 16);
+    return raw.replace(/(.{4})/g, '$1 ').trim();
+}
+function formatExpiry(val) {
+    const raw = val.replace(/\D/g, '').substring(0, 4);
+    if (raw.length >= 3) return raw.substring(0, 2) + '/' + raw.substring(2);
+    return raw;
+}
+
+function updateCardPreview() {
+    const numRaw  = document.getElementById('card-number')?.value || '';
+    const name    = document.getElementById('card-holder-name')?.value.trim().toUpperCase() || '';
+    const expiry  = document.getElementById('card-expiry')?.value || '';
+
+    const numDisplay = document.getElementById('card-number-display');
+    const nameDisplay= document.getElementById('card-name-display');
+    const expDisplay = document.getElementById('card-expiry-display');
+    const brandDisp  = document.getElementById('card-brand-display');
+    const brandIcon  = document.getElementById('card-brand-icon');
+
+    // Number display with masking
+    const raw = numRaw.replace(/\s/g, '');
+    let masked = '';
+    for (let i = 0; i < 16; i++) {
+        if (i > 0 && i % 4 === 0) masked += ' ';
+        masked += raw[i] ? (i < 12 ? '•' : raw[i]) : '•';
+    }
+    if (numDisplay) numDisplay.textContent = masked;
+    if (nameDisplay) nameDisplay.textContent = name || 'NOME NO CARTÃO';
+    if (expDisplay)  expDisplay.textContent  = expiry || 'MM/AA';
+
+    const brand = detectCardBrand(raw);
+    if (brand) {
+        if (brandDisp) brandDisp.textContent = brand.icon;
+        if (brandIcon) brandIcon.textContent = brand.icon;
+    } else {
+        if (brandDisp) brandDisp.textContent = '';
+        if (brandIcon) brandIcon.textContent = '';
+    }
+}
+
+/* ---- Open / close modal ---- */
+function openCheckoutModal(planId) {
+    activeCheckoutPlan = planId;
+    const data = PRICING_DATA[currentBillingPeriod][planId];
+
+    document.getElementById('checkout-plan-name').textContent  = data.name;
+    document.getElementById('checkout-plan-total').textContent = data.total;
+
+    // Reset card fields
+    const fields = ['card-number','card-holder-name','card-document','card-expiry','card-cvc'];
+    fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+    // Reset card preview
+    updateCardPreview();
+
+    // Reset button
+    const btn = document.getElementById('btn-confirm-payment');
+    if (btn) {
+        btn.disabled   = false;
+        btn.innerHTML  = '🔒 Assinar Agora';
+        btn.style.background = 'var(--gradient)';
+        btn.style.color = '#07070f';
+    }
+
+    const modal = document.getElementById('in-app-checkout-modal');
+    if (modal) modal.style.display = 'flex';
+
+    // Attach live-update after short delay (fields now in DOM)
+    setTimeout(attachCardListeners, 50);
+}
+
+function closeCheckoutModal() {
+    const modal = document.getElementById('in-app-checkout-modal');
+    if (modal) modal.style.display = 'none';
+    if (checkSubInterval) { clearInterval(checkSubInterval); checkSubInterval = null; }
+}
+
+function attachCardListeners() {
+    const numEl    = document.getElementById('card-number');
+    const nameEl   = document.getElementById('card-holder-name');
+    const expiryEl = document.getElementById('card-expiry');
+    const cvcEl    = document.getElementById('card-cvc');
+
+    const inputStyle = 'border-color:rgba(124,58,237,0.6)!important;box-shadow:0 0 0 2px rgba(124,58,237,0.15)!important;';
+
+    if (numEl) {
+        numEl.addEventListener('input', function() {
+            this.value = formatCardNumber(this.value);
+            updateCardPreview();
+        });
+        numEl.addEventListener('focus', () => numEl.style.cssText += inputStyle);
+        numEl.addEventListener('blur',  () => numEl.style.borderColor = '');
+    }
+    if (nameEl) {
+        nameEl.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            updateCardPreview();
+        });
+        nameEl.addEventListener('focus', () => nameEl.style.cssText += inputStyle);
+    }
+    if (expiryEl) {
+        expiryEl.addEventListener('input', function() {
+            this.value = formatExpiry(this.value);
+            updateCardPreview();
+        });
+        expiryEl.addEventListener('focus', () => expiryEl.style.cssText += inputStyle);
+    }
+    if (cvcEl) {
+        cvcEl.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 3);
+        });
+        cvcEl.addEventListener('focus', () => cvcEl.style.cssText += inputStyle);
+    }
+    const docEl = document.getElementById('card-document');
+    if (docEl) {
+        docEl.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '');
+            if (val.length <= 11) {
+                this.value = val.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+                                .replace(/(\d{3})(\d{3})(\d{3})/, "$1.$2.$3")
+                                .replace(/(\d{3})(\d{3})/, "$1.$2");
+            } else {
+                this.value = val.substring(0, 14)
+                                .replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
+                                .replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, "$1.$2.$3/$4")
+                                .replace(/(\d{2})(\d{3})(\d{3})/, "$1.$2.$3")
+                                .replace(/(\d{2})(\d{3})/, "$1.$2");
+            }
+        });
+        docEl.addEventListener('focus', () => docEl.style.cssText += inputStyle);
+    }
+}
+
+/* ---- Approve subscription ---- */
+function approvePayment() {
+    const planMapping = { starter: 'starter', creator: 'creator', enterprise: 'enterprise' };
+    const userPlan = planMapping[activeCheckoutPlan] || 'free';
+    localStorage.setItem('phaseshield_plan', userPlan);
+    showToast('Sua assinatura foi ativada com sucesso! Aproveite.', 'success');
+    renderPlanUI();
+    closeCheckoutModal();
+}
+
+/* ---- Button wiring ---- */
+document.getElementById('subscribe-starter-btn')   ?.addEventListener('click', () => openCheckoutModal('starter'));
+document.getElementById('subscribe-creator-btn')   ?.addEventListener('click', () => openCheckoutModal('creator'));
+document.getElementById('subscribe-enterprise-btn')?.addEventListener('click', () => openCheckoutModal('enterprise'));
+document.getElementById('btn-close-in-app-checkout')?.addEventListener('click', closeCheckoutModal);
+
+/* ---- Confirm payment ---- */
+document.getElementById('btn-confirm-payment')?.addEventListener('click', async function() {
+    const btn       = this;
+    const holderName = document.getElementById('card-holder-name')?.value.trim();
+    const documentStr = document.getElementById('card-document')?.value.trim();
+    const number     = document.getElementById('card-number')?.value.replace(/\s/g, '').trim();
+    const expiry     = document.getElementById('card-expiry')?.value.trim();
+    const cvc        = document.getElementById('card-cvc')?.value.trim();
+
+    // Validation
+    if (!holderName) { showToast('Informe o nome no cartão.', 'warning'); return; }
+    if (!documentStr || documentStr.replace(/\D/g, '').length < 11) { showToast('Informe um CPF ou CNPJ válido.', 'warning'); return; }
+    if (!number || number.length < 13) { showToast('Número do cartão inválido.', 'warning'); return; }
+    if (!expiry || expiry.length < 5)  { showToast('Informe a validade (MM/AA).', 'warning'); return; }
+    if (!cvc   || cvc.length < 3)      { showToast('CVC inválido.', 'warning'); return; }
+
+    // Spinner
+    btn.disabled  = true;
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:checkout-spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Processando assinatura...';
+
+    const user  = (typeof auth !== 'undefined' && auth?.currentUser) || JSON.parse(localStorage.getItem('blackvoice_auth_user') || 'null');
+    const email = user?.email || 'cliente@email.com';
+
+    const [expiryMonth, expiryYear] = expiry.split('/');
+
+    try {
+        const response = await fetch('/api/payments/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email,
+                name: holderName,
+                document: documentStr,
+                paymentMethod: 'credit_card',
+                cardData: { number, holderName, expiryMonth, expiryYear, cvv: cvc },
+                period: currentBillingPeriod,
+                plan: activeCheckoutPlan
+            })
+        });
+
+        const res = await response.json();
+
+        if (response.ok && res.success) {
+            // Show success inside modal
+            const modalBody = document.querySelector('.checkout-modal-body');
+            if (modalBody) {
+                const recurrences = {
+                    monthly:   'Mensal (cobrado todo mês)',
+                    quarterly: 'Trimestral (cobrado a cada 3 meses)',
+                    yearly:    'Anual (cobrado a cada 12 meses)'
+                };
+                modalBody.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;gap:16px;">
+                        <div style="font-size:60px;animation:toastIn 0.4s ease;">✅</div>
+                        <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento confirmado!</div>
+                        <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;">
+                            Obrigado, <b>${holderName.split(' ')[0]}</b>!<br>
+                            Sua assinatura <b>${recurrences[currentBillingPeriod]||''}</b> foi ativada.
+                        </div>
+                        <button id="btn-modal-success-close" style="width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);">
+                            🚀 Ir para o Dashboard
+                        </button>
+                    </div>`;
+            }
+            showToast('Assinatura ativada com sucesso!', 'success');
+            approvePayment();
+        } else {
+            btn.disabled  = false;
+            btn.innerHTML = '🔒 Assinar Agora';
+            showToast(res.error || 'Erro ao processar pagamento com cartão.', 'error');
+        }
+    } catch (err) {
+        btn.disabled  = false;
+        btn.innerHTML = '🔒 Assinar Agora';
+        showToast('Erro de rede ao processar cartão. Tente novamente.', 'error');
+    }
+});
+
+// Success close listener (delegated)
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'btn-modal-success-close') {
+        e.preventDefault();
+        closeCheckoutModal();
+    }
+});
+
+/* ============================================================
+   INIT
+============================================================ */
+updateHistoryUI();
+updatePlanPricesUI();
+</script>
+
+</body>
+</html>

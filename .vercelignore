@@ -1,0 +1,25 @@
+# FFmpeg binaries (too large for Vercel)
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+
+# Python files (not used on Vercel)
+*.py
+requirements.txt
+
+# Backup files
+*.bak
+
+# Temp directories and files
+temp/
+scratch/
+temp_*.mp3
+temp_*.wav
+
+# Git and IDE
+.git/
+.gemini/
+node_modules/
+
+# Docker
+Dockerfile

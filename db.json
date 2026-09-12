@@ -1,0 +1,109 @@
+{
+    "users": [
+        {
+            "name": "Cliente VIP Unlimited",
+            "email": "vip@blackvoice.com.br",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-07-20T00:00:00.000Z",
+            "lastAccess": "2026-07-20T00:00:00.000Z",
+            "totalProcesses": 0,
+            "sandbox": true
+        },
+        {
+            "name": "Administrador VIP",
+            "email": "admin@blackvoice.com",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-07-30T00:00:00.000Z",
+            "lastAccess": "2026-09-12T21:14:36.271Z",
+            "totalProcesses": 31,
+            "sandbox": true
+        },
+        {
+            "name": "Flavio Ferst Gmail",
+            "email": "flavioferst@gmail.com",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-07-30T00:00:00.000Z",
+            "lastAccess": "2026-07-30T00:00:00.000Z",
+            "totalProcesses": 0,
+            "sandbox": true
+        }
+    ],
+    "plans": {
+        "free": {
+            "id": "free",
+            "name": "Free",
+            "price": 0,
+            "dailyLimit": 2,
+            "maxFileSizeMB": 500,
+            "benefits": [
+                "1 criativo por vez",
+                "Vídeos até 500MB"
+            ]
+        },
+        "starter": {
+            "id": "starter",
+            "name": "Starter",
+            "price": 48,
+            "dailyLimit": 10,
+            "maxFileSizeMB": 500,
+            "benefits": [
+                "10 criativos por dia",
+                "Vídeos até 500MB"
+            ]
+        },
+        "creator": {
+            "id": "creator",
+            "name": "Creator Pro",
+            "price": 98,
+            "dailyLimit": 30,
+            "maxFileSizeMB": 500,
+            "benefits": [
+                "30 criativos por dia",
+                "Vídeos até 500MB",
+                "Fila Prioritária"
+            ]
+        },
+        "enterprise": {
+            "id": "enterprise",
+            "name": "Business",
+            "price": 148,
+            "dailyLimit": 9999,
+            "maxFileSizeMB": 500,
+            "benefits": [
+                "Criativos ilimitados",
+                "Vídeos até 500MB",
+                "Suporte Dedicado",
+                "Fila Prioritária"
+            ]
+        }
+    },
+    "analytics": {
+        "dailyUsage": [
+            {
+                "date": "2026-08-02",
+                "count": 1
+            },
+            {
+                "date": "2026-09-11",
+                "count": 17
+            },
+            {
+                "date": "2026-09-12",
+                "count": 13
+            }
+        ],
+        "newUsers": []
+    },
+    "globalStats": {
+        "totalProcessed": 31
+    }
+}

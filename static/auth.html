@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackVoice — Acesso Seguro</title>
+    <meta name="description" content="Acesse ou crie sua conta BlackVoice">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #00F5A0;
+            --gold-dark: #00D2FF;
+            --gold-light: #A5F3FC;
+            --bg: #030712;
+            --card: #0f172a;
+            --border: rgba(0, 245, 160, 0.15);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --dim: #475569;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* ── Background particles ── */
+        .auth-bg {
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 20% 30%, rgba(0, 245, 160, 0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 80% 70%, rgba(0, 245, 160, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .auth-bg::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 20% 30%, rgba(0, 245, 160, 0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 70%, rgba(0, 245, 160, 0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 20%, rgba(0, 245, 160, 0.15) 0%, transparent 100%);
+            background-size: 200px 200px;
+        }
+
+        /* ── Grid layout ── */
+        .auth-page {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Card ── */
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 36px 32px;
+            box-shadow:
+                0 0 0 1px rgba(0, 245, 160, 0.05),
+                0 40px 80px rgba(0,0,0,0.7),
+                0 0 60px rgba(0, 245, 160, 0.07);
+            animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Logo ── */
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.55rem;
+            letter-spacing: -0.5px;
+            display: block;
+        }
+        .logo-black {
+            font-weight: 900;
+            color: var(--text);
+        }
+        .logo-voice {
+            font-weight: 300;
+            color: var(--gold);
+            margin-left: 1px;
+        }
+        .auth-logo-sub {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 3.5px;
+            color: rgba(0, 245, 160, 0.45);
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        /* ── Tabs ── */
+        .auth-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .auth-tab.active {
+            background: var(--gold);
+            color: #080810;
+            box-shadow: 0 0 18px rgba(0, 245, 160, 0.35);
+        }
+        .auth-tab:not(.active):hover {
+            color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.06);
+        }
+
+        /* ── Panels ── */
+        .auth-panel { display: none; }
+        .auth-panel.active { display: block; }
+
+        /* ── Google button ── */
+        .btn-google {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 13px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            margin-bottom: 20px;
+        }
+        .btn-google:hover {
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+        .btn-google:active { transform: none; }
+        .btn-google svg { flex-shrink: 0; }
+
+        /* ── Divider ── */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: var(--dim);
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* ── Fields ── */
+        .auth-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 12px;
+            padding: 0 14px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .auth-field:focus-within {
+            border-color: rgba(0, 245, 160, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 245, 160, 0.06);
+        }
+        .field-icon {
+            font-size: 15px;
+            opacity: 0.4;
+            flex-shrink: 0;
+            margin-right: 10px;
+            line-height: 1;
+        }
+        .auth-field input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 14px 0;
+        }
+        .auth-field input::placeholder { color: rgba(255,255,255,0.25); }
+        .toggle-pass {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            opacity: 0.35;
+            font-size: 15px;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-pass:hover { opacity: 0.8; }
+
+        /* ── Submit button ── */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #080810;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 6px;
+            margin-bottom: 18px;
+            transition: all 0.22s ease;
+            box-shadow: 0 0 20px rgba(0, 245, 160, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            transform: translateY(-2px);
+            box-shadow: 0 0 32px rgba(0, 245, 160, 0.4);
+        }
+        .btn-submit:active:not(:disabled) { transform: none; }
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .btn-submit .spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: #080810;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Switch link ── */
+        .auth-switch {
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--dim);
+        }
+        .auth-switch a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .auth-switch a:hover { text-decoration: underline; }
+
+        /* ── Security footer ── */
+        .auth-security {
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.12);
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 18px;
+        }
+
+        /* ── Error/success ── */
+        .auth-msg {
+            border-radius: 10px;
+            font-size: 13px;
+            padding: 11px 14px;
+            margin-bottom: 14px;
+            text-align: center;
+            display: none;
+        }
+        .auth-msg.error {
+            display: block;
+            background: rgba(248,113,113,0.1);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: var(--error);
+        }
+        .auth-msg.success {
+            display: block;
+            background: rgba(52,211,153,0.1);
+            border: 1px solid rgba(52,211,153,0.3);
+            color: var(--success);
+        }
+
+        /* ── Back link ── */
+        .auth-back {
+            position: fixed;
+            top: 20px; left: 24px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+        .auth-back:hover { color: var(--text); }
+
+        /* ── Forgot password link ── */
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: 11px;
+            color: var(--dim);
+            text-decoration: none;
+            margin-top: -4px;
+            margin-bottom: 14px;
+            transition: color 0.2s;
+        }
+        .forgot-link:hover { color: var(--gold); }
+
+        /* ── Not configured warning ── */
+        .config-warning {
+            background: rgba(251,191,36,0.1);
+            border: 1px solid rgba(251,191,36,0.3);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: #fbbf24;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            display: none;
+        }
+        .config-warning.show { display: block; }
+        .config-warning code {
+            background: rgba(255,255,255,0.1);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-bg"></div>
+
+    <a href="/" class="auth-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+        Voltar ao site
+    </a>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <strong class="auth-logo-name"><span class="logo-black">Black</span><span class="logo-voice">Voice</span></strong>
+                <small class="auth-logo-sub">Terminal de Acesso Seguro</small>
+            </div>
+
+            <!-- Firebase not configured warning -->
+            <div class="config-warning" id="config-warning">
+                ⚠️ Firebase não configurado. Edite o arquivo <code>firebase-config.js</code> com suas chaves. <a href="https://console.firebase.google.com" target="_blank" style="color:#fbbf24;">Criar projeto →</a>
+            </div>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">ACESSAR</button>
+                <button class="auth-tab" id="tab-register">REGISTRAR</button>
+            </div>
+
+            <!-- LOGIN PANEL -->
+            <div class="auth-panel active" id="panel-login">
+                <button class="btn-google" id="btn-google-login">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-4z"/>
+                        <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.8 2 10.3 6 6.3 14.7z"/>
+                        <path fill="#FBBC05" d="M24 46c5.9 0 10.9-1.9 14.6-5.2l-6.7-5.5C29.8 36.7 27 37.5 24 37.5c-6 0-11.1-4-12.9-9.5l-7 5.4C7.7 41.6 15.3 46 24 46z"/>
+                        <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.8 2.3-2.3 4.2-4.4 5.5l6.7 5.5c3.9-3.6 6.4-9 6.4-15.5 0-1.3-.2-2.7-.5-4z"/>
+                    </svg>
+                    Continuar com o Google
+                </button>
+                <div class="auth-divider">OU ACESSE COM EMAIL</div>
+                <div class="auth-msg" id="login-msg"></div>
+                <div class="auth-field">
+                    <span class="field-icon">✉</span>
+                    <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
+                </div>
+                <div class="auth-field">
+                    <span class="field-icon">🔒</span>
+                    <input type="password" id="login-password" placeholder="Senha" autocomplete="current-password">
+                    <button class="toggle-pass" type="button" id="toggle-login-pass">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <a href="#" class="forgot-link" id="forgot-link">Esqueci minha senha</a>
+                <button class="btn-submit" id="btn-do-login">ACESSAR SISTEMA →</button>
+                <p class="auth-switch">NÃO TEM CONTA? <a href="#" id="go-register">REGISTRAR AQUI</a></p>
+            </div>
+
+            <!-- REGISTER PANEL -->
+            <div class="auth-panel" id="panel-register">
+                <button class="btn-google" id="btn-google-register">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-4z"/>
+                        <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.8 2 10.3 6 6.3 14.7z"/>
+                        <path fill="#FBBC05" d="M24 46c5.9 0 10.9-1.9 14.6-5.2l-6.7-5.5C29.8 36.7 27 37.5 24 37.5c-6 0-11.1-4-12.9-9.5l-7 5.4C7.7 41.6 15.3 46 24 46z"/>
+                        <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.8 2.3-2.3 4.2-4.4 5.5l6.7 5.5c3.9-3.6 6.4-9 6.4-15.5 0-1.3-.2-2.7-.5-4z"/>
+                    </svg>
+                    Continuar com o Google
+                </button>
+                <div class="auth-divider">OU CADASTRE COM EMAIL</div>
+                <div class="auth-msg" id="register-msg"></div>
+                <div class="auth-field">
+                    <span class="field-icon">👤</span>
+                    <input type="text" id="register-name" placeholder="Nome completo" autocomplete="name">
+                </div>
+                <div class="auth-field">
+                    <span class="field-icon">✉</span>
+                    <input type="email" id="register-email" placeholder="seu@email.com" autocomplete="email">
+                </div>
+                <div class="auth-field">
+                    <span class="field-icon">🔒</span>
+                    <input type="password" id="register-password" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password">
+                    <button class="toggle-pass" type="button" id="toggle-reg-pass">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <button class="btn-submit" id="btn-do-register">PROVISIONAR SISTEMA →</button>
+                <p class="auth-switch">JÁ TEM CONTA? <a href="#" id="go-login">ENTRAR AQUI</a></p>
+            </div>
+
+            <div class="auth-security">⚡ FIREBASE AUTH — CRIPTOGRAFIA DE PONTA A PONTA ATIVA</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v9 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="/firebase-config.js"></script>
+    <script>
+    (function() {
+        // ── Check if Firebase is configured ──
+        const isConfigured = !FIREBASE_CONFIG.apiKey.includes('COLE_AQUI');
+        if (!isConfigured) {
+            document.getElementById('config-warning').classList.add('show');
+        }
+
+        // ── Init Firebase ──
+        let auth = null;
+        if (isConfigured) {
+            try {
+                const app = firebase.initializeApp(FIREBASE_CONFIG);
+                auth = firebase.auth();
+                
+                // Handle Redirect result (Google login fallback on mobile)
+                auth.getRedirectResult()
+                    .then(result => {
+                        // redirect auth success (onAuthStateChanged will redirect to dashboard)
+                    })
+                    .catch(err => {
+                        console.error('Redirect auth error:', err);
+                        const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
+                        showMsg(panel, firebaseErrorPT(err.code), 'error');
+                    });
+
+                // If already logged in, redirect to dashboard
+                auth.onAuthStateChanged(user => {
+                    if (user) window.location.href = '/dashboard';
+                });
+            } catch(e) {
+                console.error('Firebase init error:', e);
+            }
+        }
+
+        // ── Tab switching ──
+        const tabLogin    = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const panelLogin  = document.getElementById('panel-login');
+        const panelReg    = document.getElementById('panel-register');
+
+        function showTab(tab) {
+            tabLogin.classList.toggle('active', tab === 'login');
+            tabRegister.classList.toggle('active', tab === 'register');
+            panelLogin.classList.toggle('active', tab === 'login');
+            panelReg.classList.toggle('active', tab === 'register');
+        }
+        tabLogin.addEventListener('click', () => showTab('login'));
+        tabRegister.addEventListener('click', () => showTab('register'));
+        document.getElementById('go-register').addEventListener('click', e => { e.preventDefault(); showTab('register'); });
+        document.getElementById('go-login').addEventListener('click', e => { e.preventDefault(); showTab('login'); });
+
+        // ── URL param: open register tab ──
+        if (new URLSearchParams(location.search).get('tab') === 'register') showTab('register');
+
+        // ── Password toggles ──
+        function togglePass(btnId, inputId) {
+            document.getElementById(btnId).addEventListener('click', function() {
+                const inp = document.getElementById(inputId);
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+            });
+        }
+        togglePass('toggle-login-pass', 'login-password');
+        togglePass('toggle-reg-pass', 'register-password');
+
+        // ── Utility ──
+        function showMsg(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'auth-msg ' + type;
+        }
+        function clearMsg(id) {
+            const el = document.getElementById(id);
+            el.className = 'auth-msg';
+            el.textContent = '';
+        }
+        function setLoading(btn, loading, originalText) {
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner"></span> AGUARDE...`;
+            } else {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+        function firebaseErrorPT(code) {
+            const map = {
+                'auth/user-not-found':      'Nenhuma conta encontrada com esse e-mail.',
+                'auth/wrong-password':      'Senha incorreta. Tente novamente.',
+                'auth/invalid-email':       'E-mail inválido.',
+                'auth/email-already-in-use':'Esse e-mail já está cadastrado.',
+                'auth/weak-password':       'Senha fraca. Use pelo menos 6 caracteres.',
+                'auth/too-many-requests':   'Muitas tentativas. Tente novamente mais tarde.',
+                'auth/network-request-failed': 'Falha de rede. Verifique sua conexão.',
+                'auth/popup-closed-by-user': 'Login cancelado.',
+                'auth/popup-blocked':        'Pop-up bloqueado. Tente novamente ou use outra forma de login.',
+                'auth/unauthorized-domain':  'Este domínio não está autorizado no Firebase Console. Adicione-o em Autenticação > Configurações > Domínios autorizados.',
+                'auth/operation-not-allowed': 'O provedor de login do Google não está ativado no Firebase Console. Ative-o em Autenticação > Método de login.',
+                'auth/invalid-credential':  'Credenciais inválidas. Verifique e-mail e senha.',
+            };
+            return map[code] || `Erro (${code}). Ocorreu um erro no Firebase.`;
+        }
+
+        // ── Google Auth ──
+        async function googleLogin() {
+            if (!auth) { showMsg('login-msg', 'Configure o Firebase primeiro.', 'error'); return; }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (err) {
+                console.error('Google login error:', err);
+                const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
+                showMsg(panel, firebaseErrorPT(err.code), 'error');
+            }
+        }
+        document.getElementById('btn-google-login').addEventListener('click', googleLogin);
+        document.getElementById('btn-google-register').addEventListener('click', googleLogin);
+
+        // ── Email Login ──
+        const btnLogin = document.getElementById('btn-do-login');
+        btnLogin.addEventListener('click', async function() {
+            clearMsg('login-msg');
+            const email = document.getElementById('login-email').value.trim();
+            const pass  = document.getElementById('login-password').value;
+            if (!email || !pass) { showMsg('login-msg', 'Preencha todos os campos.', 'error'); return; }
+            if (!auth) { showMsg('login-msg', 'Configure o Firebase primeiro.', 'error'); return; }
+            setLoading(this, true);
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                // onAuthStateChanged will redirect
+            } catch(err) {
+                setLoading(this, false, 'ACESSAR SISTEMA →');
+                showMsg('login-msg', firebaseErrorPT(err.code), 'error');
+            }
+        });
+
+        // ── Enter key on login ──
+        document.getElementById('login-password').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-do-login').click();
+        });
+
+        // ── Email Register ──
+        const btnRegister = document.getElementById('btn-do-register');
+        btnRegister.addEventListener('click', async function() {
+            clearMsg('register-msg');
+            const name  = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const pass  = document.getElementById('register-password').value;
+            if (!name || !email || !pass) { showMsg('register-msg', 'Preencha todos os campos.', 'error'); return; }
+            if (pass.length < 6) { showMsg('register-msg', 'Senha deve ter pelo menos 6 caracteres.', 'error'); return; }
+            if (!auth) { showMsg('register-msg', 'Configure o Firebase primeiro.', 'error'); return; }
+            setLoading(this, true);
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                await cred.user.updateProfile({ displayName: name });
+                // onAuthStateChanged will redirect
+            } catch(err) {
+                setLoading(this, false, 'PROVISIONAR SISTEMA →');
+                showMsg('register-msg', firebaseErrorPT(err.code), 'error');
+            }
+        });
+
+        // ── Forgot password ──
+        document.getElementById('forgot-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (!auth) return;
+            const email = document.getElementById('login-email').value.trim();
+            if (!email) { showMsg('login-msg', 'Digite seu e-mail acima primeiro.', 'error'); return; }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showMsg('login-msg', '✅ E-mail de redefinição enviado! Verifique sua caixa de entrada.', 'success');
+            } catch(err) {
+                showMsg('login-msg', firebaseErrorPT(err.code), 'error');
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
