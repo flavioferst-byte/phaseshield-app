@@ -590,16 +590,28 @@
             return map[code] || `Erro (${code}). Ocorreu um erro no Firebase.`;
         }
 
-        // ── Google Auth (Redirecionamento Limpo de Tela Cheia) ──
+        // ── Google Auth ──
         async function googleLogin() {
             if (!auth) { showMsg('login-msg', 'Configure o Firebase primeiro.', 'error'); return; }
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithRedirect(provider);
+                const result = await auth.signInWithPopup(provider);
+                if (result && result.user) {
+                    try { 
+                        localStorage.setItem('blackvoice_auth_user', JSON.stringify({ 
+                            email: result.user.email, 
+                            displayName: result.user.displayName, 
+                            photoURL: result.user.photoURL 
+                        })); 
+                    } catch(e){}
+                    window.location.href = '/dashboard';
+                }
             } catch (err) {
                 console.error('Google login error:', err);
-                const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
-                showMsg(panel, firebaseErrorPT(err.code), 'error');
+                if (err.code !== 'auth/popup-closed-by-user') {
+                    const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
+                    showMsg(panel, firebaseErrorPT(err.code), 'error');
+                }
             }
         }
         document.getElementById('btn-google-login').addEventListener('click', googleLogin);
