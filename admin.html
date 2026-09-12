@@ -1401,12 +1401,19 @@
                                 }
                                 <button onclick="openChangePlanModal('${u.email}', '${u.name}', '${u.plan}')">🏷️ Alterar Plano</button>
                                 <button onclick="submitUserAction('reset_password', '${u.email}')">🔑 Resetar Senha</button>
+                                <button onclick="confirmDeleteUser('${u.email}')" class="danger">🗑️ Excluir Usuário</button>
                             </div>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function confirmDeleteUser(email) {
+            if (confirm(`Tem certeza que deseja EXCLUIR permanentemente a conta de ${email}? Esta ação não pode ser desfeita.`)) {
+                submitUserAction('delete', email);
+            }
         }
 
         // Toggle user action dropdown menu
@@ -1440,6 +1447,7 @@
             const actionTexts = {
                 block: 'Conta bloqueada com sucesso.',
                 activate: 'Conta ativada com sucesso.',
+                delete: 'Usuário excluído permanentemente.',
                 reset_password: 'Link de reset de senha gerado com sucesso.',
                 change_plan: 'Plano do usuário atualizado.'
             };

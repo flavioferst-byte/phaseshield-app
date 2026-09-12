@@ -1661,6 +1661,9 @@ app.post('/api/admin/users/action', (req, res) => {
         } else {
             LOCAL_SUBSCRIBERS[email] = true;
         }
+    } else if (action === 'delete') {
+        db.users = db.users.filter(x => x.email !== email);
+        delete LOCAL_SUBSCRIBERS[email];
     } else if (action === 'reset_password') {
         console.log(`[Admin] Solicitado reset de senha para: ${email}`);
     }
