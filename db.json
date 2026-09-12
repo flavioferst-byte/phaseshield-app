@@ -52,7 +52,7 @@
         "starter": {
             "id": "starter",
             "name": "Starter",
-            "price": 48,
+            "price": 79,
             "dailyLimit": 10,
             "maxFileSizeMB": 500,
             "benefits": [

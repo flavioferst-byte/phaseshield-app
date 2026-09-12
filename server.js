@@ -1429,9 +1429,9 @@ app.post('/api/payments/create', (req, res) => {
     }
 
     const PLANS_PRICES = {
-        monthly:   { starter: 6900,  creator: 13900, enterprise: 20900 },
-        quarterly: { starter: 14400, creator: 29400, enterprise: 44400 },
-        yearly:    { starter: 34800, creator: 70800, enterprise: 106800 }
+        monthly:   { starter: 9700,  creator: 13900, enterprise: 20900 },
+        quarterly: { starter: 23700, creator: 29400, enterprise: 44400 },
+        yearly:    { starter: 58800, creator: 70800, enterprise: 106800 }
     };
 
     const activePeriod = period || 'monthly';

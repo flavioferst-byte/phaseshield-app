@@ -15,7 +15,7 @@
     ],
     "plans": {
         "free": { "id": "free", "name": "Free", "price": 0, "dailyLimit": 2, "maxFileSizeMB": 50, "benefits": ["1 criativo por vez", "Vídeos até 50MB"] },
-        "starter": { "id": "starter", "name": "Starter", "price": 48, "dailyLimit": 10, "maxFileSizeMB": 100, "benefits": ["10 criativos por dia", "Vídeos até 100MB"] },
+        "starter": { "id": "starter", "name": "Starter", "price": 79, "dailyLimit": 10, "maxFileSizeMB": 100, "benefits": ["10 criativos por dia", "Vídeos até 100MB"] },
         "creator": { "id": "creator", "name": "Creator Pro", "price": 98, "dailyLimit": 30, "maxFileSizeMB": 300, "benefits": ["30 criativos por dia", "Vídeos até 300MB", "Fila Prioritária"] },
         "enterprise": { "id": "enterprise", "name": "Business", "price": 148, "dailyLimit": 9999, "maxFileSizeMB": 500, "benefits": ["Criativos ilimitados", "Vídeos até 500MB", "Suporte Dedicado", "Fila Prioritária"] }
     },
