@@ -51,10 +51,8 @@ app.use('/__/auth', (req, res) => {
     req.pipe(clientReq);
 });
 
-// CabeÃ§alhos para WebAssembly (SharedArrayBuffer) e CORS
+// Cabeçalhos CORS para API
 app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     res.setHeader('Access-Control-Allow-Origin', '*');
     next();
 });
