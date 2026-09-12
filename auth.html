@@ -582,23 +582,14 @@
             return map[code] || `Erro (${code}). Ocorreu um erro no Firebase.`;
         }
 
-        // ── Google Auth ──
+        // ── Google Auth (Redirecionamento Limpo de Tela Cheia) ──
         async function googleLogin() {
             if (!auth) { showMsg('login-msg', 'Configure o Firebase primeiro.', 'error'); return; }
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithPopup(provider);
+                await auth.signInWithRedirect(provider);
             } catch (err) {
                 console.error('Google login error:', err);
-                // Se o popup for bloqueado pelo navegador ou fechado, usa o redirecionamento de tela cheia
-                if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-                    try {
-                        await auth.signInWithRedirect(provider);
-                        return;
-                    } catch(redirErr) {
-                        console.error('Redirect auth error:', redirErr);
-                    }
-                }
                 const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
                 showMsg(panel, firebaseErrorPT(err.code), 'error');
             }
