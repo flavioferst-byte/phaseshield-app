@@ -590,6 +590,15 @@
                 await auth.signInWithPopup(provider);
             } catch (err) {
                 console.error('Google login error:', err);
+                // Se o popup for bloqueado pelo navegador ou fechado, usa o redirecionamento de tela cheia
+                if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+                    try {
+                        await auth.signInWithRedirect(provider);
+                        return;
+                    } catch(redirErr) {
+                        console.error('Redirect auth error:', redirErr);
+                    }
+                }
                 const panel = panelLogin.classList.contains('active') ? 'login-msg' : 'register-msg';
                 showMsg(panel, firebaseErrorPT(err.code), 'error');
             }
