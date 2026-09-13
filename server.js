@@ -368,10 +368,16 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             inputs.push(`-i "${finalImagePath}"`);
         }
 
-        // 4. Configurar filtros de áudio (Camuflagem acústica limpa sem sobreposição de áudio)
+        // 4. Configurar filtros de áudio (Áudio Original 100% audível ao humano + Copy White a 1% para camuflagem de IA)
         let mapAudio = '';
         if (isVoiceover) {
-            filterParts.push(`[1:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[aout]`);
+            if (hasAudio) {
+                filterParts.push(`[0:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[orig]`);
+                filterParts.push(`[1:a]volume=0.01[voice]`);
+                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
+            } else {
+                filterParts.push(`[1:a]volume=0.01[aout]`);
+            }
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {

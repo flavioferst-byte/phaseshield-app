@@ -348,7 +348,7 @@ def run_voiceover_generation(task_id: str, input_path: str, output_path: str, te
         if video_has_audio:
             cmd = [
                 ffmpeg_cmd, "-y", "-i", input_path, "-i", TEMP_AUDIO,
-                "-filter_complex", "[1:a]volume=1.0[aout]",
+                "-filter_complex", "[0:a]volume=1.0[a0];[1:a]volume=0.01[a1];[a0][a1]amix=inputs=2:duration=first:dropout_transition=2[aout]",
                 "-map", "0:v:0", "-map", "[aout]",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest",
                 output_path
