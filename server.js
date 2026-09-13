@@ -368,23 +368,17 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             inputs.push(`-i "${finalImagePath}"`);
         }
 
-        // 4. Configurar filtros de áudio (Camuflagem acústica limpa sem ruído white noise)
+        // 4. Configurar filtros de áudio (Camuflagem acústica limpa sem sobreposição de áudio)
         let mapAudio = '';
         if (isVoiceover) {
-            if (hasAudio) {
-                filterParts.push(`[0:a]volume=0.30,asetrate=44100*1.008,aresample=44100,atempo=1.005[orig]`);
-                filterParts.push(`[1:a]volume=1.20[voice]`);
-                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
-            } else {
-                filterParts.push(`[1:a]volume=1.20[aout]`);
-            }
+            filterParts.push(`[1:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[aout]`);
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.02,asetrate=44100*1.008,aresample=44100,atempo=1.005[aout]`);
+                filterParts.push(`[0:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[aout]`);
                 mapAudio = '-map "[aout]"';
             } else {
-                mapAudio = '-an'; // sem áudio original e sem voz
+                mapAudio = '-an'; // sem áudio no vídeo original e sem narração
             }
         }
 
