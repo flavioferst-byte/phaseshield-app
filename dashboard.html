@@ -1375,35 +1375,15 @@
 
                         <!-- Passo 3: Configurações — aplica-se a todos os arquivos -->
                         <div id="settings-row" style="display:flex;margin-bottom:24px;flex-direction:column;gap:16px;">
-                            <!-- Campos de Camuflagem de Imagem/Flash -->
-                            <div id="camouflage-fields" style="display:flex; flex-direction:column; gap:16px; width:100%;">
-                                <div style="font-size:13.5px;font-weight:600;color:#FFFFFF;margin-bottom:6px;">Imagem de Camuflagem &amp; Capa (Opcional):</div>
-                                <div class="image-drop" id="image-dropzone" style="background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s ease;">
-                                    <span id="image-placeholder-text" style="font-size:13.5px;color:var(--text3);">Clique para anexar imagem de Capa (Miniatura/Hash)</span>
-                                    <input type="file" id="image-input-field" accept="image/*" style="display:none;">
-                                </div>
-
-                                <div style="margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;">
-                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                                        <span style="font-size:13.5px;font-weight:600;color:#FFFFFF;">Opacidade do Flash (Camuflagem de Hash):</span>
-                                        <span class="slider-value" id="flash-value" style="font-size:13.5px;font-weight:700;color:var(--gold);">20%</span>
-                                    </div>
-                                    <div class="slider-wrap" style="display:flex;align-items:center;gap:12px;">
-                                        <input type="range" class="slider" id="flash-slider" min="5" max="60" value="20" style="flex:1;">
-                                    </div>
-                                    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4;">
-                                        A imagem carregada será definida como a Capa (Miniatura) do vídeo e piscará por 100ms a cada 1 segundo. Se nenhuma imagem for enviada, o BlackVoice extrairá e usará a capa original do vídeo automaticamente.
-                                    </div>
-                                </div>
-
+                            <div id="camouflage-fields" style="display:flex; flex-direction:column; gap:12px; width:100%;">
                                 <!-- Inverter/Espelhar Vídeo Checkbox -->
-                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%; margin-top:8px;">
+                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%;">
                                     <input type="checkbox" id="toggle-mirror-video" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
                                     <label for="toggle-mirror-video" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Inverter a imagem (Espelhar horizontalmente para TikTok Ads)</label>
                                 </div>
 
                                 <!-- Alongamento de Vídeo Checkbox -->
-                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%; margin-top:8px;">
+                                <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%;">
                                     <input type="checkbox" id="toggle-stretch-video" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
                                     <label for="toggle-stretch-video" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Alongar vídeo para 10 minutos</label>
                                 </div>
@@ -2478,7 +2458,7 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
     const stretchActive   = document.getElementById('toggle-stretch-video')?.checked || false;
     const mirrorActive    = document.getElementById('toggle-mirror-video')?.checked || false;
     const coverImgFile    = imageInput?.files?.[0] || null;
-    const camActive       = !!coverImgFile || mirrorActive;
+    const camActive       = mirrorActive;
 
     const filesToProcess  = [...selectedFiles];
     batchResults = filesToProcess.map((f, i) => ({ idx: i, file: f, status: 'pending', url: null, taskId: null }));
