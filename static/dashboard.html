@@ -2474,11 +2474,11 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
 
     // — collect shared settings —
     const voiceoverText   = voiceoverTextEl?.value?.trim() || '';
-    const camActive       = true;
     const flashVal        = document.getElementById('flash-slider')?.value || '20';
     const stretchActive   = document.getElementById('toggle-stretch-video')?.checked || false;
     const mirrorActive    = document.getElementById('toggle-mirror-video')?.checked || false;
     const coverImgFile    = imageInput?.files?.[0] || null;
+    const camActive       = !!coverImgFile || mirrorActive;
 
     const filesToProcess  = [...selectedFiles];
     batchResults = filesToProcess.map((f, i) => ({ idx: i, file: f, status: 'pending', url: null, taskId: null }));
