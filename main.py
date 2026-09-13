@@ -340,15 +340,15 @@ def run_voiceover_generation(task_id: str, input_path: str, output_path: str, te
         if not os.path.exists(TEMP_AUDIO) or os.path.getsize(TEMP_AUDIO) == 0:
             raise Exception("Falha ao gerar o arquivo de narração.")
             
-        # Passo 3: Mesclar vídeo com áudio da narração (volume 1% -> 0.01)
-        TASKS[task_id].update({"status": "processing", "progress": 70, "message": "Mesclando áudio (volume da narração a 1%)..."})
+        # Passo 3: Mesclar vídeo com áudio da narração (Phase Cancellation no áudio original + White Copy a 0.35)
+        TASKS[task_id].update({"status": "processing", "progress": 70, "message": "Mesclando áudio com Phase Cancellation e White Copy..."})
         
         video_has_audio = has_audio_stream(input_path)
         
         if video_has_audio:
             cmd = [
                 ffmpeg_cmd, "-y", "-i", input_path, "-i", TEMP_AUDIO,
-                "-filter_complex", "[0:a]volume=1.0[a0];[1:a]volume=0.01[a1];[a0][a1]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+                "-filter_complex", "[0:a]pan=mono|c0=0.5*c0+0.5*c1,asetrate=44100*1.012,aresample=44100,atempo=0.988,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[a0];[1:a]volume=0.35,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[a1];[a0][a1]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]",
                 "-map", "0:v:0", "-map", "[aout]",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest",
                 output_path
@@ -356,7 +356,7 @@ def run_voiceover_generation(task_id: str, input_path: str, output_path: str, te
         else:
             cmd = [
                 ffmpeg_cmd, "-y", "-i", input_path, "-i", TEMP_AUDIO,
-                "-filter_complex", "[1:a]volume=0.01[aout]",
+                "-filter_complex", "[1:a]volume=1.0,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]",
                 "-map", "0:v:0", "-map", "[aout]",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest",
                 output_path

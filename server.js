@@ -368,20 +368,20 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             inputs.push(`-i "${finalImagePath}"`);
         }
 
-        // 4. Configurar filtros de áudio (Áudio Original 100% audível ao humano + Copy White a 1% para camuflagem de IA)
+        // 4. Configurar filtros de áudio (Phase Cancellation no Áudio Original para anular na IA + Copy White para transcrição da IA)
         let mapAudio = '';
         if (isVoiceover) {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[orig]`);
-                filterParts.push(`[1:a]volume=0.01[voice]`);
+                filterParts.push(`[0:a]pan=mono|c0=0.5*c0+0.5*c1,asetrate=44100*1.012,aresample=44100,atempo=0.988,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[orig]`);
+                filterParts.push(`[1:a]volume=0.35,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[voice]`);
                 filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
             } else {
-                filterParts.push(`[1:a]volume=0.01[aout]`);
+                filterParts.push(`[1:a]volume=1.00,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]`);
             }
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.00,asetrate=44100*1.008,aresample=44100,atempo=1.005[aout]`);
+                filterParts.push(`[0:a]pan=mono|c0=0.5*c0+0.5*c1,asetrate=44100*1.012,aresample=44100,atempo=0.988,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[aout]`);
                 mapAudio = '-map "[aout]"';
             } else {
                 mapAudio = '-an'; // sem áudio no vídeo original e sem narração
