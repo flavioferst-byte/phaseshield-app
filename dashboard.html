@@ -1375,15 +1375,8 @@
 
                         <!-- Passo 3: Configurações — aplica-se a todos os arquivos -->
                         <div id="settings-row" style="display:flex;margin-bottom:24px;flex-direction:column;gap:16px;">
-                            <!-- Ativar Camuflagem Checkbox -->
-                            <div style="display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); padding:16px; border-radius:12px; width:100%;">
-                                <input type="checkbox" id="toggle-camouflage" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
-                                <label for="toggle-camouflage" style="font-size:13.5px;font-weight:600;color:#FFFFFF;cursor:pointer;">Ativar Camuflagem</label>
-                                <span style="font-size:11px;color:var(--text3);margin-left:4px;">(aplica-se a todos os arquivos)</span>
-                            </div>
-
                             <!-- Campos de Camuflagem de Imagem/Flash -->
-                            <div id="camouflage-fields" style="display:none; flex-direction:column; gap:16px; width:100%;">
+                            <div id="camouflage-fields" style="display:flex; flex-direction:column; gap:16px; width:100%;">
                                 <div style="font-size:13.5px;font-weight:600;color:#FFFFFF;margin-bottom:6px;">Imagem de Camuflagem &amp; Capa (Opcional):</div>
                                 <div class="image-drop" id="image-dropzone" style="background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s ease;">
                                     <span id="image-placeholder-text" style="font-size:13.5px;color:var(--text3);">Clique para anexar imagem de Capa (Miniatura/Hash)</span>
@@ -2481,7 +2474,7 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
 
     // — collect shared settings —
     const voiceoverText   = voiceoverTextEl?.value?.trim() || '';
-    const camActive       = document.getElementById('toggle-camouflage')?.checked || false;
+    const camActive       = true;
     const flashVal        = document.getElementById('flash-slider')?.value || '20';
     const stretchActive   = document.getElementById('toggle-stretch-video')?.checked || false;
     const mirrorActive    = document.getElementById('toggle-mirror-video')?.checked || false;
