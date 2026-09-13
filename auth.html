@@ -590,6 +590,16 @@
             return map[code] || `Erro (${code}). Ocorreu um erro no Firebase.`;
         }
 
+        async function syncUserWithBackend(email, name) {
+            try {
+                await fetch('/api/user/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, name: name })
+                });
+            } catch(e) { console.error('User sync error:', e); }
+        }
+
         // ── Google Auth ──
         async function googleLogin() {
             if (!auth) { showMsg('login-msg', 'Configure o Firebase primeiro.', 'error'); return; }
@@ -604,6 +614,7 @@
                             photoURL: result.user.photoURL 
                         })); 
                     } catch(e){}
+                    await syncUserWithBackend(result.user.email, result.user.displayName);
                     window.location.href = '/dashboard';
                 }
             } catch (err) {
@@ -630,6 +641,7 @@
                 const cred = await auth.signInWithEmailAndPassword(email, pass);
                 if (cred && cred.user) {
                     try { localStorage.setItem('blackvoice_auth_user', JSON.stringify({ email: cred.user.email, displayName: cred.user.displayName, photoURL: cred.user.photoURL })); } catch(e){}
+                    await syncUserWithBackend(cred.user.email, cred.user.displayName);
                     window.location.href = '/dashboard';
                 }
             } catch(err) {
@@ -658,6 +670,7 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 await cred.user.updateProfile({ displayName: name });
                 try { localStorage.setItem('blackvoice_auth_user', JSON.stringify({ email: cred.user.email, displayName: name, photoURL: null })); } catch(e){}
+                await syncUserWithBackend(cred.user.email, name);
                 window.location.href = '/dashboard';
             } catch(err) {
                 setLoading(this, false, 'PROVISIONAR SISTEMA →');

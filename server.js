@@ -1550,6 +1550,41 @@ app.post('/api/pix/generate', (req, res) => {
     });
 });
 
+// POST /api/user/sync - Sincroniza cadastros do Firebase Auth com o DB do Admin
+app.post('/api/user/sync', (req, res) => {
+    const { email, name, plan } = req.body;
+    if (!email) {
+        return res.status(400).json({ error: 'E-mail é obrigatório.' });
+    }
+    try {
+        const db = loadDb();
+        let u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+        if (u) {
+            u.lastAccess = new Date().toISOString();
+            if (name && (!u.name || u.name === 'Sem nome')) u.name = name;
+        } else {
+            u = {
+                name: name || email.split('@')[0],
+                email: email,
+                document: "000.000.000-00",
+                plan: plan || 'enterprise',
+                status: 'active',
+                overdueDays: 0,
+                createdAt: new Date().toISOString(),
+                lastAccess: new Date().toISOString(),
+                totalProcesses: 0,
+                sandbox: false
+            };
+            db.users.push(u);
+        }
+        saveDb(db);
+        return res.json({ success: true, user: u });
+    } catch (e) {
+        console.error('Erro no sync de usuário:', e);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // =========================================================================== //
 //  ADMIN PANEL ROUTES & API                                                  //
 // =========================================================================== //
@@ -1568,6 +1603,43 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ success: false, error: 'Credenciais de administrador inválidas.' });
 });
 
+// Criar/Adicionar Usuário manualmente pelo Admin
+app.post('/api/admin/users/create', (req, res) => {
+    const token = req.headers.authorization;
+    if (token !== 'admin-super-token-xyz-2026') {
+        return res.status(403).json({ error: 'Acesso negado.' });
+    }
+    const { name, email, plan, document } = req.body;
+    if (!email) {
+        return res.status(400).json({ error: 'E-mail é obrigatório.' });
+    }
+
+    const db = loadDb();
+    let u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+    if (u) {
+        if (name) u.name = name;
+        if (plan) u.plan = plan;
+        if (document) u.document = document;
+        u.status = 'active';
+    } else {
+        u = {
+            name: name || email.split('@')[0],
+            email: email,
+            document: document || "000.000.000-00",
+            plan: plan || 'enterprise',
+            status: 'active',
+            overdueDays: 0,
+            createdAt: new Date().toISOString(),
+            lastAccess: new Date().toISOString(),
+            totalProcesses: 0,
+            sandbox: false
+        };
+        db.users.push(u);
+    }
+    saveDb(db);
+    res.json({ success: true, user: u });
+});
+
 // Estatísticas globais do dashboard admin
 app.get('/api/admin/stats', (req, res) => {
     const token = req.headers.authorization;
@@ -1583,7 +1655,7 @@ app.get('/api/admin/stats', (req, res) => {
     let billingPaidMonth = 0;
     db.users.forEach(u => {
         const planConf = db.plans[u.plan];
-        if (planConf && !u.sandbox) { // Apenas clientes reais no faturamento e MRR
+        if (planConf) {
             if (u.status !== 'blocked') {
                 mrr += planConf.price;
             }
