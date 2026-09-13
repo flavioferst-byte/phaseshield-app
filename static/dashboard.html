@@ -2315,8 +2315,8 @@ function renderBatchList() {
     const countEl   = document.getElementById('batch-count');
 
     // Garante configurações sempre visíveis
-    actionBar.style.display  = 'block';
-    settingsRow.style.display = 'flex';
+    if (actionBar) actionBar.style.display  = 'block';
+    if (settingsRow) settingsRow.style.display = 'flex';
     const toggleCam = document.getElementById('toggle-camouflage');
     const camFields = document.getElementById('camouflage-fields');
     if (toggleCam && camFields) camFields.style.display = toggleCam.checked ? 'flex' : 'none';
@@ -2452,8 +2452,8 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
     document.getElementById('drop-zone-area').style.display         = 'none';
     document.getElementById('batch-file-list-container').style.display = 'none';
     document.getElementById('voiceover-section').style.display      = 'none';
-    settingsRow.style.display = 'none';
-    actionBar.style.display   = 'none';
+    if (settingsRow) settingsRow.style.display = 'none';
+    if (actionBar) actionBar.style.display   = 'none';
     document.getElementById('batch-progress-container').style.display = 'block';
     document.getElementById('batch-results-container').style.display  = 'none';
     processingBox.classList.remove('show');
