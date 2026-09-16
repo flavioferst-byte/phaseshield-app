@@ -1547,14 +1547,14 @@ app.post('/api/payments/create', async (req, res) => {
             ]
         };
 
-        if (paymentMethod === 'credit_card' && cardData) {
-            postPayload.card = {
-                number: cardData.number.replace(/\s/g, ''),
-                holder_name: cardData.holderName.toUpperCase(),
-                exp_month: parseInt(cardData.expiryMonth),
-                exp_year: parseInt(cardData.expiryYear),
-                cvv: cardData.cvv.trim()
-            };
+        if (paymentMethod === 'credit_card') {
+            postPayload.antifraud_profiling_attempt_reference = idempotencyKey;
+            postPayload.installments = req.body.installments || 1;
+            if (cardData) {
+                postPayload.card = {
+                    token: cardData.token || cardData.cardToken || cardData.number || 'dummy_token'
+                };
+            }
         }
 
         const postData = JSON.stringify(postPayload);
