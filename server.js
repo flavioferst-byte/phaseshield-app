@@ -5,6 +5,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const https = require('https');
 const crypto = require('crypto');
+const querystring = require('querystring');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -1433,7 +1434,7 @@ function getCaktoToken() {
         return Promise.resolve(caktoTokenCache);
     }
     return new Promise((resolve, reject) => {
-        const postData = JSON.stringify({
+        const postData = querystring.stringify({
             client_id: CAKTO_CLIENT_ID,
             client_secret: CAKTO_CLIENT_SECRET
         });
@@ -1444,7 +1445,7 @@ function getCaktoToken() {
             path: '/public_api/token/',
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': Buffer.byteLength(postData)
             }
         };
