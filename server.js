@@ -1513,16 +1513,29 @@ app.post('/api/payments/create', async (req, res) => {
     try {
         const token = await getCaktoToken();
         const cleanDoc = document.replace(/\D/g, '');
+        const phoneStr = (req.body.phone || '11999999999').replace(/\D/g, '');
+
+        // Mapeamento das ofertas da Cakto para cada plano
+        const PLAN_OFFERS = {
+            starter:    '3d99gp7', // Oferta associada na Cakto
+            creator:    'a8myac8',
+            enterprise: '9pbq2rv'
+        };
+
+        const targetOfferId = req.body.offerId || PLAN_OFFERS[activePlan] || '3d99gp7';
 
         const postPayload = {
             paymentMethod: paymentMethod === 'pix' ? 'pix' : 'credit_card',
-            amount: priceAmount,
             customer: {
                 name: name,
                 email: email,
-                document: cleanDoc
+                phone: phoneStr || '11999999999',
+                docNumber: cleanDoc,
+                fingerprint: crypto.randomUUID()
             },
-            plan: activePlan
+            items: [
+                { offerId: targetOfferId }
+            ]
         };
 
         if (paymentMethod === 'credit_card' && cardData) {
@@ -1545,6 +1558,7 @@ app.post('/api/payments/create', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
+                'X-Idempotency-Key': crypto.randomUUID(),
                 'Content-Length': Buffer.byteLength(postData)
             }
         };
