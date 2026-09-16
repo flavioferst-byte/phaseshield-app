@@ -1643,7 +1643,14 @@ app.post('/api/webhooks/cakto', (req, res) => {
     const body = req.body || {};
     const event = body.event || body.type || body.status;
     const customerEmail = body.customer?.email || body.email || body.data?.customer?.email;
-    const plan = body.plan || body.offer_id || body.data?.plan || 'starter';
+
+    const rawPlan = body.plan || body.offer_id || body.data?.offer?.id || body.data?.plan || 'starter';
+    const OFFER_TO_PLAN = {
+        '3d99gp7': 'starter',
+        'a8myac8': 'creator',
+        '9pbq2rv': 'enterprise'
+    };
+    const plan = OFFER_TO_PLAN[rawPlan] || (['starter', 'creator', 'enterprise'].includes(rawPlan) ? rawPlan : 'starter');
 
     if (customerEmail && (event === 'purchase_approved' || event === 'paid' || event === 'approved' || body.status === 'approved' || body.status === 'paid')) {
         try {
@@ -1658,7 +1665,7 @@ app.post('/api/webhooks/cakto', (req, res) => {
                 db.users.push({
                     name: body.customer?.name || customerEmail.split('@')[0],
                     email: customerEmail,
-                    document: body.customer?.document || "000.000.000-00",
+                    document: body.customer?.document || body.customer?.docNumber || "000.000.000-00",
                     plan: plan,
                     status: 'active',
                     overdueDays: 0,
@@ -1679,22 +1686,39 @@ app.post('/api/webhooks/cakto', (req, res) => {
 
 // POST /api/pix/generate - Gerar Pix via Cakto API
 app.post('/api/pix/generate', async (req, res) => {
-    const { name, cpf, plan, email } = req.body;
+    const { name, cpf, plan, email, phone } = req.body;
     if (!name || !cpf || !plan) {
         return res.status(400).json({ success: false, error: 'Nome, CPF e Plano são obrigatórios.' });
+    }
+
+    const PLAN_OFFERS = {
+        starter:    '3d99gp7',
+        creator:    'a8myac8',
+        enterprise: '9pbq2rv'
+    };
+    const targetOfferId = req.body.offerId || PLAN_OFFERS[plan] || '3d99gp7';
+
+    function generateUuid() {
+        try {
+            if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+        } catch(e) {}
+        return crypto.randomBytes(16).toString('hex');
     }
 
     try {
         const token = await getCaktoToken();
         const postPayload = JSON.stringify({
             paymentMethod: 'pix',
-            amount: plan === 'enterprise' ? 148.00 : (plan === 'creator' ? 98.00 : 79.00),
             customer: {
                 name: name,
                 email: email || 'cliente@blackvoice.com.br',
-                document: cpf.replace(/\D/g, '')
+                phone: (phone || '11999999999').replace(/\D/g, ''),
+                docNumber: cpf.replace(/\D/g, ''),
+                fingerprint: generateUuid()
             },
-            plan: plan
+            items: [
+                { offerId: targetOfferId }
+            ]
         });
 
         const options = {
@@ -1705,6 +1729,7 @@ app.post('/api/pix/generate', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
+                'X-Idempotency-Key': generateUuid(),
                 'Content-Length': Buffer.byteLength(postPayload)
             }
         };
@@ -1716,11 +1741,12 @@ app.post('/api/pix/generate', async (req, res) => {
                 try {
                     const parsed = JSON.parse(body);
                     if ((apiRes.statusCode === 200 || apiRes.statusCode === 201) && parsed) {
+                        const pixCode = typeof parsed.pix === 'string' ? parsed.pix : (parsed.pix?.qrCode || parsed.pix?.copy_paste || parsed.pix?.emv || '');
                         return res.json({
                             success: true,
                             data: {
-                                pixCopiaECola: parsed.pix?.copy_paste || parsed.pix?.emv || parsed.copy_paste || parsed.pix_code || '',
-                                qrCodeBase64: parsed.pix?.qrcode_base64 || parsed.qrcode_base64 || '',
+                                pixCopiaECola: pixCode,
+                                qrCodeBase64: parsed.pix?.qrcode_base64 || '',
                                 status: parsed.status || 'pending',
                                 message: 'Pix gerado com sucesso via Cakto.'
                             }
