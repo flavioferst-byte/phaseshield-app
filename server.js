@@ -1524,6 +1524,15 @@ app.post('/api/payments/create', async (req, res) => {
 
         const targetOfferId = req.body.offerId || PLAN_OFFERS[activePlan] || '3d99gp7';
 
+        function generateUuid() {
+            try {
+                if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+            } catch(e) {}
+            return crypto.randomBytes(16).toString('hex');
+        }
+
+        const idempotencyKey = generateUuid();
+
         const postPayload = {
             paymentMethod: paymentMethod === 'pix' ? 'pix' : 'credit_card',
             customer: {
@@ -1531,7 +1540,7 @@ app.post('/api/payments/create', async (req, res) => {
                 email: email,
                 phone: phoneStr || '11999999999',
                 docNumber: cleanDoc,
-                fingerprint: crypto.randomUUID()
+                fingerprint: generateUuid()
             },
             items: [
                 { offerId: targetOfferId }
@@ -1558,7 +1567,7 @@ app.post('/api/payments/create', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                'X-Idempotency-Key': crypto.randomUUID(),
+                'X-Idempotency-Key': idempotencyKey,
                 'Content-Length': Buffer.byteLength(postData)
             }
         };
