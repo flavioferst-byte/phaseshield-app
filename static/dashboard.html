@@ -3350,8 +3350,8 @@ document.getElementById('btn-confirm-payment')?.addEventListener('click', async 
 
         const res = await response.json();
 
-        if (response.ok && res.success) {
-            // Show success inside modal
+        if (response.ok && res.success && (res.status === 'approved' || res.approved)) {
+            // Pagamento com cartão aprovado no ato
             const modalBody = document.querySelector('.checkout-modal-body');
             if (modalBody) {
                 const recurrences = {
@@ -3374,15 +3374,35 @@ document.getElementById('btn-confirm-payment')?.addEventListener('click', async 
             }
             showToast('Assinatura ativada com sucesso!', 'success');
             approvePayment();
+        } else if (response.ok && res.success && res.pix) {
+            // Pix gerado pela Cakto — exibe tela de pagamento Pix sem liberar o sistema antes de pagar
+            btn.disabled = false;
+            btn.innerHTML = '🔒 Assinar Agora';
+            const modalBody = document.querySelector('.checkout-modal-body');
+            if (modalBody) {
+                const pixCode = typeof res.pix === 'string' ? res.pix : (res.pix.copy_paste || res.pix.emv || JSON.stringify(res.pix));
+                modalBody.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;text-align:center;gap:16px;">
+                        <div style="font-size:44px;">⚡</div>
+                        <div style="font-size:1.1rem;font-weight:800;color:#FFFFFF;">Pagamento via Pix (Cakto)</div>
+                        <div style="font-size:12px;color:var(--text2);">Copie o código abaixo e pague no seu aplicativo do banco. O sistema será liberado automaticamente após a confirmação.</div>
+                        <textarea readonly style="width:100%;height:80px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-family:monospace;font-size:11px;padding:10px;box-sizing:border-radius;">${pixCode}</textarea>
+                        <button id="btn-copy-pix-code" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--gradient);color:#000;font-weight:800;font-size:14px;cursor:pointer;">📋 Copiar Código Pix</button>
+                    </div>`;
+                document.getElementById('btn-copy-pix-code')?.addEventListener('click', () => {
+                    navigator.clipboard.writeText(pixCode);
+                    showToast('Código Pix copiado!', 'success');
+                });
+            }
         } else {
             btn.disabled  = false;
             btn.innerHTML = '🔒 Assinar Agora';
-            showToast(res.error || 'Erro ao processar pagamento com cartão.', 'error');
+            showToast(res.error || 'Erro ao processar pagamento. Verifique os dados.', 'error');
         }
     } catch (err) {
         btn.disabled  = false;
         btn.innerHTML = '🔒 Assinar Agora';
-        showToast('Erro de rede ao processar cartão. Tente novamente.', 'error');
+        showToast('Erro de conexão ao processar pagamento com a Cakto.', 'error');
     }
 });
 

@@ -1419,76 +1419,139 @@ app.post('/api/check-subscription', (req, res) => {
     apiReq.end();
 });
 
-// POST /api/payments/create
-app.post('/api/payments/create', (req, res) => {
+// =========================================================================== //
+//  CAKTO API PAYMENT INTEGRATION (PIX & CREDIT CARD)                         //
+// =========================================================================== //
+const CAKTO_CLIENT_ID     = process.env.CAKTO_CLIENT_ID || 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ';
+const CAKTO_CLIENT_SECRET = process.env.CAKTO_CLIENT_SECRET || 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ';
+
+let caktoTokenCache = null;
+let caktoTokenExpiry = 0;
+
+function getCaktoToken() {
+    if (caktoTokenCache && Date.now() < caktoTokenExpiry - 60000) {
+        return Promise.resolve(caktoTokenCache);
+    }
+    return new Promise((resolve, reject) => {
+        const postData = JSON.stringify({
+            client_id: CAKTO_CLIENT_ID,
+            client_secret: CAKTO_CLIENT_SECRET
+        });
+
+        const reqOptions = {
+            hostname: 'api.cakto.com.br',
+            port: 443,
+            path: '/public_api/token/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        const req = https.request(reqOptions, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(body);
+                    const token = parsed.access_token || parsed.token;
+                    if (token) {
+                        caktoTokenCache = token;
+                        const expiresIn = parsed.expires_in || 86400;
+                        caktoTokenExpiry = Date.now() + (expiresIn * 1000);
+                        console.log('✅ Token Cakto obtido com sucesso!');
+                        resolve(token);
+                    } else {
+                        console.error('❌ Resposta da API de Token Cakto:', body);
+                        reject(new Error(parsed.message || parsed.error || 'Falha ao autenticar na API da Cakto'));
+                    }
+                } catch (e) {
+                    console.error('❌ Erro ao parsear resposta da Cakto:', body);
+                    reject(new Error('Erro na comunicação com a API da Cakto'));
+                }
+            });
+        });
+
+        req.on('error', (err) => {
+            console.error('❌ Erro de conexão com a Cakto Token API:', err.message);
+            reject(err);
+        });
+
+        req.write(postData);
+        req.end();
+    });
+}
+
+// POST /api/payments/create - Criar Pagamento via Cakto API (Pix ou Cartão)
+app.post('/api/payments/create', async (req, res) => {
     const { email, name, document, plan, period, paymentMethod, cardData } = req.body;
     if (!email || !name || !document) {
-        return res.status(400).json({ error: 'E-mail, Nome e Documento são obrigatórios.' });
+        return res.status(400).json({ success: false, error: 'E-mail, Nome e Documento (CPF/CNPJ) são obrigatórios.' });
     }
 
     const PLANS_PRICES = {
-        monthly:   { starter: 9700,  creator: 13900, enterprise: 20900 },
-        quarterly: { starter: 23700, creator: 29400, enterprise: 44400 },
-        yearly:    { starter: 58800, creator: 70800, enterprise: 106800 }
+        monthly:   { starter: 97.00,  creator: 139.00, enterprise: 209.00 },
+        quarterly: { starter: 237.00, creator: 294.00, enterprise: 444.00 },
+        yearly:    { starter: 588.00, creator: 708.00, enterprise: 1068.00 }
     };
 
     const activePeriod = period || 'monthly';
     const activePlan = plan || 'starter';
     const planPrices = PLANS_PRICES[activePeriod] || PLANS_PRICES['monthly'];
-    const amount = planPrices[activePlan] || 6900;
+    const priceAmount = planPrices[activePlan] || 97.00;
 
-    let postPayload = {
-        paymentMethod: paymentMethod || 'credit_card',
-        amount: amount,
-        customerData: {
-            email: email,
-            name: name,
-            document: document.replace(/\D/g, '')
-        }
-    };
+    try {
+        const token = await getCaktoToken();
+        const cleanDoc = document.replace(/\D/g, '');
 
-    if (paymentMethod === 'credit_card') {
-        if (!cardData || !cardData.number || !cardData.holderName || !cardData.expiryMonth || !cardData.expiryYear || !cardData.cvv) {
-            return res.status(400).json({ error: 'Dados do cartão de crédito incompletos.' });
-        }
-        postPayload.cardData = {
-            number: cardData.number.replace(/\s/g, ''),
-            holderName: cardData.holderName.toUpperCase(),
-            expiryMonth: cardData.expiryMonth.trim(),
-            expiryYear: cardData.expiryYear.trim(),
-            cvv: cardData.cvv.trim()
+        const postPayload = {
+            paymentMethod: paymentMethod === 'pix' ? 'pix' : 'credit_card',
+            amount: priceAmount,
+            customer: {
+                name: name,
+                email: email,
+                document: cleanDoc
+            },
+            plan: activePlan
         };
-    }
 
-    const postData = JSON.stringify(postPayload);
-
-    const options = {
-        hostname: 'navenaut.com',
-        port: 443,
-        path: '/api/public/v1/payments/create',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Public-Key': process.env.NAVENAUT_PUBLIC_KEY || ('pk_' + 'live_50e15c343003430d3fd115c3438c2e76bd637efb6af7b18a'),
-            'X-Secret-Key': process.env.NAVENAUT_SECRET_KEY || ('sk_' + 'live_581bf63baa08198de2274c55be2532734d3e56ebb3994090'),
-            'Content-Length': Buffer.byteLength(postData)
+        if (paymentMethod === 'credit_card' && cardData) {
+            postPayload.card = {
+                number: cardData.number.replace(/\s/g, ''),
+                holder_name: cardData.holderName.toUpperCase(),
+                exp_month: parseInt(cardData.expiryMonth),
+                exp_year: parseInt(cardData.expiryYear),
+                cvv: cardData.cvv.trim()
+            };
         }
-    };
 
-    const apiReq = https.request(options, (apiRes) => {
-        let responseData = '';
-        apiRes.on('data', (chunk) => {
-            responseData += chunk;
-        });
-        apiRes.on('end', () => {
-            try {
-                const parsed = JSON.parse(responseData);
-                
-                // Se o pagamento foi concluído com sucesso, atualiza o plano do usuário no banco
-                if (apiRes.statusCode === 200 && parsed && parsed.success) {
-                    try {
+        const postData = JSON.stringify(postPayload);
+
+        const options = {
+            hostname: 'api.cakto.com.br',
+            port: 443,
+            path: '/public_api/payments/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        const apiReq = https.request(options, (apiRes) => {
+            let responseData = '';
+            apiRes.on('data', chunk => responseData += chunk);
+            apiRes.on('end', () => {
+                try {
+                    const parsed = JSON.parse(responseData);
+                    console.log(`[Cakto Payment Response] Status: ${apiRes.statusCode}`, responseData);
+
+                    if ((apiRes.statusCode === 200 || apiRes.statusCode === 201) && parsed && (parsed.status === 'approved' || parsed.status === 'paid' || parsed.success)) {
+                        // Pagamento aprovado no ato -> ativa plano no banco de dados
                         const db = loadDb();
-                        let u = db.users.find(x => x.email === email);
+                        let u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
                         if (u) {
                             u.plan = activePlan;
                             u.status = 'active';
@@ -1498,56 +1561,156 @@ app.post('/api/payments/create', (req, res) => {
                             db.users.push({
                                 name: name,
                                 email: email,
-                                document: document,
+                                document: cleanDoc,
                                 plan: activePlan,
                                 status: 'active',
                                 overdueDays: 0,
                                 createdAt: new Date().toISOString(),
                                 lastAccess: new Date().toISOString(),
-                                totalProcesses: 0
+                                totalProcesses: 0,
+                                sandbox: false
                             });
                         }
                         saveDb(db);
-                    } catch (dbErr) {
-                        console.error('Erro ao salvar DB após confirmação real:', dbErr);
+                        return res.json({ success: true, status: 'approved', message: 'Pagamento aprovado!', data: parsed });
+                    } else if (parsed && (parsed.pix || parsed.qr_code)) {
+                        // Retorna os dados do Pix para pagamento pelo cliente
+                        return res.json({
+                            success: true,
+                            status: 'pending',
+                            pix: parsed.pix || parsed.qr_code,
+                            message: 'Pix gerado com sucesso.'
+                        });
+                    } else {
+                        const errMsg = parsed.message || parsed.error || parsed.detail || 'Não foi possível autorizar o pagamento. Verifique os dados.';
+                        return res.status(apiRes.statusCode || 400).json({ success: false, error: errMsg });
                     }
+                } catch (e) {
+                    console.error('Erro ao processar resposta Cakto:', responseData);
+                    return res.status(500).json({ success: false, error: 'Erro ao processar resposta da API Cakto.' });
                 }
-                
-                res.status(apiRes.statusCode).json(parsed);
-            } catch (err) {
-                res.status(500).json({ error: 'Erro ao processar resposta do Navenaut.', details: responseData });
-            }
+            });
         });
-    });
 
-    apiReq.on('error', (err) => {
-        res.status(500).json({ error: 'Falha na conexão com a API do Navenaut.', details: err.message });
-    });
+        apiReq.on('error', (err) => {
+            console.error('Erro de rede na API Cakto:', err.message);
+            res.status(500).json({ success: false, error: 'Falha de conexão com o servidor da Cakto.' });
+        });
 
-    apiReq.write(postData);
-    apiReq.end();
+        apiReq.write(postData);
+        apiReq.end();
+    } catch (err) {
+        console.error('Erro no fluxo de pagamento Cakto:', err.message);
+        res.status(500).json({ success: false, error: err.message || 'Erro ao comunicar com a Cakto.' });
+    }
 });
 
-// POST /api/pix/generate
-app.post('/api/pix/generate', (req, res) => {
-    const { name, cpf, plan } = req.body;
+// POST /api/webhooks/cakto - Webhook para confirmação de pagamento pago da Cakto
+app.post('/api/webhooks/cakto', (req, res) => {
+    console.log('📥 Webhook Cakto Recebido:', JSON.stringify(req.body));
+    const body = req.body || {};
+    const event = body.event || body.type || body.status;
+    const customerEmail = body.customer?.email || body.email || body.data?.customer?.email;
+    const plan = body.plan || body.offer_id || body.data?.plan || 'starter';
+
+    if (customerEmail && (event === 'purchase_approved' || event === 'paid' || event === 'approved' || body.status === 'approved' || body.status === 'paid')) {
+        try {
+            const db = loadDb();
+            let u = db.users.find(x => x.email && x.email.toLowerCase() === customerEmail.toLowerCase());
+            if (u) {
+                u.plan = plan;
+                u.status = 'active';
+                u.overdueDays = 0;
+                u.lastAccess = new Date().toISOString();
+            } else {
+                db.users.push({
+                    name: body.customer?.name || customerEmail.split('@')[0],
+                    email: customerEmail,
+                    document: body.customer?.document || "000.000.000-00",
+                    plan: plan,
+                    status: 'active',
+                    overdueDays: 0,
+                    createdAt: new Date().toISOString(),
+                    lastAccess: new Date().toISOString(),
+                    totalProcesses: 0,
+                    sandbox: false
+                });
+            }
+            saveDb(db);
+            console.log(`✅ Plano [${plan}] ativado com sucesso para o usuário [${customerEmail}] via Webhook Cakto!`);
+        } catch (dbErr) {
+            console.error('Erro ao processar Webhook Cakto no DB:', dbErr);
+        }
+    }
+    return res.status(200).json({ success: true, received: true });
+});
+
+// POST /api/pix/generate - Gerar Pix via Cakto API
+app.post('/api/pix/generate', async (req, res) => {
+    const { name, cpf, plan, email } = req.body;
     if (!name || !cpf || !plan) {
         return res.status(400).json({ success: false, error: 'Nome, CPF e Plano são obrigatórios.' });
     }
 
-    const txId = crypto.randomUUID().replace(/-/g, '').toUpperCase().slice(0, 25);
-    const pixCopiaECola = `00020101021226830014br.gov.bcb.pix2530api.pagseguro.com/pix/v2/${txId}5204899953039865802BR5915BLACKVOICE SAAS6009Sao Paulo62070503***6304D1A2`;
+    try {
+        const token = await getCaktoToken();
+        const postPayload = JSON.stringify({
+            paymentMethod: 'pix',
+            amount: plan === 'enterprise' ? 148.00 : (plan === 'creator' ? 98.00 : 79.00),
+            customer: {
+                name: name,
+                email: email || 'cliente@blackvoice.com.br',
+                document: cpf.replace(/\D/g, '')
+            },
+            plan: plan
+        });
 
-    res.json({
-        success: true,
-        data: {
-            pixCopiaECola: pixCopiaECola,
-            qrCodeBase64: "",
-            status: "pending",
-            sandbox: true,
-            message: "Pix gerado com sucesso no Sandbox (Modo de Teste)."
-        }
-    });
+        const options = {
+            hostname: 'api.cakto.com.br',
+            port: 443,
+            path: '/public_api/payments/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Length': Buffer.byteLength(postPayload)
+            }
+        };
+
+        const apiReq = https.request(options, (apiRes) => {
+            let body = '';
+            apiRes.on('data', chunk => body += chunk);
+            apiRes.on('end', () => {
+                try {
+                    const parsed = JSON.parse(body);
+                    if ((apiRes.statusCode === 200 || apiRes.statusCode === 201) && parsed) {
+                        return res.json({
+                            success: true,
+                            data: {
+                                pixCopiaECola: parsed.pix?.copy_paste || parsed.pix?.emv || parsed.copy_paste || parsed.pix_code || '',
+                                qrCodeBase64: parsed.pix?.qrcode_base64 || parsed.qrcode_base64 || '',
+                                status: parsed.status || 'pending',
+                                message: 'Pix gerado com sucesso via Cakto.'
+                            }
+                        });
+                    } else {
+                        return res.status(apiRes.statusCode || 400).json({ success: false, error: parsed.message || 'Falha ao gerar Pix na Cakto.' });
+                    }
+                } catch(e) {
+                    return res.status(500).json({ success: false, error: 'Erro de resposta da Cakto.' });
+                }
+            });
+        });
+
+        apiReq.on('error', (err) => {
+            res.status(500).json({ success: false, error: 'Erro de comunicação com Cakto.' });
+        });
+
+        apiReq.write(postPayload);
+        apiReq.end();
+    } catch(err) {
+        res.status(500).json({ success: false, error: err.message || 'Erro ao conectar na Cakto.' });
+    }
 });
 
 // POST /api/user/sync - Sincroniza cadastros do Firebase Auth com o DB do Admin
@@ -1567,7 +1730,7 @@ app.post('/api/user/sync', (req, res) => {
                 name: name || email.split('@')[0],
                 email: email,
                 document: "000.000.000-00",
-                plan: plan || 'enterprise',
+                plan: plan || 'free',
                 status: 'active',
                 overdueDays: 0,
                 createdAt: new Date().toISOString(),
@@ -1626,7 +1789,7 @@ app.post('/api/admin/users/create', (req, res) => {
             name: name || email.split('@')[0],
             email: email,
             document: document || "000.000.000-00",
-            plan: plan || 'enterprise',
+            plan: plan || 'free',
             status: 'active',
             overdueDays: 0,
             createdAt: new Date().toISOString(),
