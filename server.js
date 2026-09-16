@@ -1423,8 +1423,8 @@ app.post('/api/check-subscription', (req, res) => {
 // =========================================================================== //
 //  CAKTO API PAYMENT INTEGRATION (PIX & CREDIT CARD)                         //
 // =========================================================================== //
-const CAKTO_CLIENT_ID     = process.env.CAKTO_CLIENT_ID || 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ';
-const CAKTO_CLIENT_SECRET = process.env.CAKTO_CLIENT_SECRET || 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ';
+const CAKTO_CLIENT_ID     = process.env.CAKTO_CLIENT_ID || 'ZidFQA0lePKvpPlcPdGFj0GFK0LDnKdVTKntfGIX';
+const CAKTO_CLIENT_SECRET = process.env.CAKTO_CLIENT_SECRET || 'nK7zS2Ktxf2iBXJltnV3iFsiNo8AsjkYGa66869LB1vjASn45mauSD0nXAtBqRcOCrwlOO5X2HTgHoD3azrbx4UWLyZ3U3YHN9CKiKOAHkC0DBRTFu53FPA8VyNAT9hn';
 
 let caktoTokenCache = null;
 let caktoTokenExpiry = 0;
