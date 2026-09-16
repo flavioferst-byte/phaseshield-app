@@ -1423,8 +1423,16 @@ app.post('/api/check-subscription', (req, res) => {
 // =========================================================================== //
 //  CAKTO API PAYMENT INTEGRATION (PIX & CREDIT CARD)                         //
 // =========================================================================== //
-const CAKTO_CLIENT_ID     = process.env.CAKTO_CLIENT_ID || 'ZidFQA0lePKvpPlcPdGFj0GFK0LDnKdVTKntfGIX';
-const CAKTO_CLIENT_SECRET = process.env.CAKTO_CLIENT_SECRET || 'nK7zS2Ktxf2iBXJltnV3iFsiNo8AsjkYGa66869LB1vjASn45mauSD0nXAtBqRcOCrwlOO5X2HTgHoD3azrbx4UWLyZ3U3YHN9CKiKOAHkC0DBRTFu53FPA8VyNAT9hn';
+let rawClientId = process.env.CAKTO_CLIENT_ID;
+let rawClientSecret = process.env.CAKTO_CLIENT_SECRET;
+if (!rawClientId || rawClientId === 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ' || rawClientId === rawClientSecret) {
+    rawClientId = 'ZidFQA0lePKvpPlcPdGFj0GFK0LDnKdVTKntfGIX';
+}
+if (!rawClientSecret || rawClientSecret === 'aYnmRk71fA88r6aiD7ebL4yEJNl71AZTNMXoPdPQ') {
+    rawClientSecret = 'nK7zS2Ktxf2iBXJltnV3iFsiNo8AsjkYGa66869LB1vjASn45mauSD0nXAtBqRcOCrwlOO5X2HTgHoD3azrbx4UWLyZ3U3YHN9CKiKOAHkC0DBRTFu53FPA8VyNAT9hn';
+}
+const CAKTO_CLIENT_ID     = rawClientId;
+const CAKTO_CLIENT_SECRET = rawClientSecret;
 
 let caktoTokenCache = null;
 let caktoTokenExpiry = 0;
