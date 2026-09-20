@@ -1,18 +1,6 @@
 {
     "users": [
         {
-            "name": "Cliente VIP Unlimited",
-            "email": "vip@blackvoice.com.br",
-            "document": "000.000.000-00",
-            "plan": "enterprise",
-            "status": "active",
-            "overdueDays": 0,
-            "createdAt": "2026-07-20T00:00:00.000Z",
-            "lastAccess": "2026-07-20T00:00:00.000Z",
-            "totalProcesses": 0,
-            "sandbox": false
-        },
-        {
             "name": "Administrador VIP",
             "email": "admin@blackvoice.com",
             "document": "000.000.000-00",
@@ -20,8 +8,20 @@
             "status": "active",
             "overdueDays": 0,
             "createdAt": "2026-07-30T00:00:00.000Z",
-            "lastAccess": "2026-09-12T21:14:36.271Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
             "totalProcesses": 31,
+            "sandbox": false
+        },
+        {
+            "name": "Cliente VIP Unlimited",
+            "email": "vip@blackvoice.com.br",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-07-20T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 12,
             "sandbox": false
         },
         {
@@ -32,8 +32,80 @@
             "status": "active",
             "overdueDays": 0,
             "createdAt": "2026-07-30T00:00:00.000Z",
-            "lastAccess": "2026-07-30T00:00:00.000Z",
-            "totalProcesses": 0,
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 18,
+            "sandbox": false
+        },
+        {
+            "name": "Flavio Ferst Hotmail",
+            "email": "flavioferst@hotmail.com",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-08-01T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 5,
+            "sandbox": false
+        },
+        {
+            "name": "Flavio Ferst Outlook",
+            "email": "flavioferst@outlook.com",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-08-05T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 8,
+            "sandbox": false
+        },
+        {
+            "name": "Flavio Ferst Byte",
+            "email": "flavioferst-byte@gmail.com",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-08-10T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 14,
+            "sandbox": false
+        },
+        {
+            "name": "Suporte BlackVoice",
+            "email": "suporte@blackvoice.com.br",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-08-15T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 2,
+            "sandbox": false
+        },
+        {
+            "name": "Contato BlackVoice",
+            "email": "contato@blackvoice.com.br",
+            "document": "000.000.000-00",
+            "plan": "enterprise",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-08-15T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 4,
+            "sandbox": false
+        },
+        {
+            "name": "Cliente BlackVoice",
+            "email": "cliente@blackvoice.com.br",
+            "document": "000.000.000-00",
+            "plan": "starter",
+            "status": "active",
+            "overdueDays": 0,
+            "createdAt": "2026-09-01T00:00:00.000Z",
+            "lastAccess": "2026-09-20T10:00:00.000Z",
+            "totalProcesses": 6,
             "sandbox": false
         }
     ],
@@ -104,6 +176,6 @@
         "newUsers": []
     },
     "globalStats": {
-        "totalProcessed": 31
+        "totalProcessed": 100
     }
 }

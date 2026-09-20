@@ -2172,6 +2172,15 @@ if(isConfigured) {
             // Salvar cache do usuário
             try { localStorage.setItem('blackvoice_auth_user', JSON.stringify({ email: user.email, displayName: user.displayName, photoURL: user.photoURL })); } catch(e){}
             hideAuthGuard();
+            // Sincronizar automaticamente o usuário no DB do Admin
+            fetch('/api/user/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.email,
+                    name: user.displayName || user.email.split('@')[0]
+                })
+            }).catch(e => console.error('Auto sync error:', e));
             try { updateUIForUser(user); } catch(e) { console.error('Erro ao atualizar UI:', e); }
         });
     } catch(err) {

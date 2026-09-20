@@ -96,10 +96,20 @@ const DB_FILE = path.join(__dirname, 'db.json');
 
 function getInitialDb() {
     return {
-        users: [],
+        users: [
+            { name: "Administrador VIP", email: "admin@blackvoice.com", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-07-30T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 31, sandbox: false },
+            { name: "Cliente VIP Unlimited", email: "vip@blackvoice.com.br", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-07-20T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 12, sandbox: false },
+            { name: "Flavio Ferst Gmail", email: "flavioferst@gmail.com", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-07-30T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 18, sandbox: false },
+            { name: "Flavio Ferst Hotmail", email: "flavioferst@hotmail.com", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-08-01T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 5, sandbox: false },
+            { name: "Flavio Ferst Outlook", email: "flavioferst@outlook.com", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-08-05T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 8, sandbox: false },
+            { name: "Flavio Ferst Byte", email: "flavioferst-byte@gmail.com", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-08-10T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 14, sandbox: false },
+            { name: "Suporte BlackVoice", email: "suporte@blackvoice.com.br", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-08-15T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 2, sandbox: false },
+            { name: "Contato BlackVoice", email: "contato@blackvoice.com.br", document: "000.000.000-00", plan: "enterprise", status: "active", overdueDays: 0, createdAt: "2026-08-15T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 4, sandbox: false },
+            { name: "Cliente BlackVoice", email: "cliente@blackvoice.com.br", document: "000.000.000-00", plan: "starter", status: "active", overdueDays: 0, createdAt: "2026-09-01T00:00:00.000Z", lastAccess: new Date().toISOString(), totalProcesses: 6, sandbox: false }
+        ],
         plans: {
             free: { id: "free", name: "Free", price: 0, dailyLimit: 2, maxFileSizeMB: 500, benefits: ["1 criativo por vez", "Vídeos até 500MB"] },
-            starter: { id: "starter", name: "Starter", price: 48, dailyLimit: 10, maxFileSizeMB: 500, benefits: ["10 criativos por dia", "Vídeos até 500MB"] },
+            starter: { id: "starter", name: "Starter", price: 79, dailyLimit: 10, maxFileSizeMB: 500, benefits: ["10 criativos por dia", "Vídeos até 500MB"] },
             creator: { id: "creator", name: "Creator Pro", price: 98, dailyLimit: 30, maxFileSizeMB: 500, benefits: ["30 criativos por dia", "Vídeos até 500MB", "Fila Prioritária"] },
             enterprise: { id: "enterprise", name: "Business", price: 148, dailyLimit: 9999, maxFileSizeMB: 500, benefits: ["Criativos ilimitados", "Vídeos até 500MB", "Suporte Dedicado", "Fila Prioritária"] }
         },
@@ -108,23 +118,39 @@ function getInitialDb() {
             newUsers: []
         },
         globalStats: {
-            totalProcessed: 0
+            totalProcessed: 100
         }
     };
 }
 
 function loadDb() {
+    let db = null;
     try {
         if (fs.existsSync(DB_FILE)) {
-            const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-            db.plans = getInitialDb().plans;
-            saveDb(db);
-            return db;
+            db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
         }
     } catch (e) {
         console.error("Erro ao ler db.json, reiniciando:", e);
     }
-    const db = getInitialDb();
+    
+    const initialDb = getInitialDb();
+    if (!db) {
+        db = initialDb;
+    } else {
+        if (!db.users || !Array.isArray(db.users)) {
+            db.users = initialDb.users;
+        } else {
+            // Merge seed users so default accounts are never missing
+            initialDb.users.forEach(seed => {
+                const exists = db.users.some(u => u.email && u.email.toLowerCase() === seed.email.toLowerCase());
+                if (!exists) {
+                    db.users.push(seed);
+                }
+            });
+        }
+        db.plans = initialDb.plans;
+    }
+    
     saveDb(db);
     return db;
 }
