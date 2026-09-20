@@ -1669,35 +1669,18 @@ app.post('/api/payments/create', async (req, res) => {
     }
 });
 
-// POST /api/payments/confirm - Confirmar e ativar plano para o usuário
-app.post('/api/payments/confirm', (req, res) => {
-    const { email, plan } = req.body;
-    if (!email || !plan) {
-        return res.status(400).json({ success: false, error: 'E-mail e Plano são obrigatórios.' });
-    }
+// GET /api/user/status - Obter status do plano do usuário em tempo real
+app.get('/api/user/status', (req, res) => {
+    const email = req.query.email;
+    if (!email) return res.status(400).json({ success: false, error: 'E-mail obrigatório' });
     const db = loadDb();
-    let u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
-    if (u) {
-        u.plan = plan;
-        u.status = 'active';
-        u.overdueDays = 0;
-        u.lastAccess = new Date().toISOString();
-    } else {
-        db.users.push({
-            name: email.split('@')[0],
-            email: email,
-            document: '000.000.000-00',
-            plan: plan,
-            status: 'active',
-            overdueDays: 0,
-            createdAt: new Date().toISOString(),
-            lastAccess: new Date().toISOString(),
-            totalProcesses: 0,
-            sandbox: false
-        });
-    }
-    saveDb(db);
-    return res.json({ success: true, message: 'Assinatura ativada com sucesso!', user: u });
+    const u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+    return res.json({
+        success: true,
+        email: email,
+        plan: u ? u.plan : 'free',
+        status: u ? u.status : 'inactive'
+    });
 });
 
 // POST /api/webhooks/cakto - Webhook para confirmação de pagamento pago da Cakto

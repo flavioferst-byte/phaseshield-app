@@ -3411,7 +3411,10 @@ document.getElementById('btn-confirm-pix')?.addEventListener('click', async func
                         
                         <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
                             <button id="btn-copy-pix-code" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--gradient);color:#000;font-weight:800;font-size:14px;cursor:pointer;">📋 Copiar Código Pix</button>
-                            <button id="btn-confirm-pix-paid" style="width:100%;padding:13px;border:1px solid rgba(16,185,129,0.5);border-radius:10px;background:rgba(16,185,129,0.15);color:#10b981;font-weight:800;font-size:14px;cursor:pointer;">✅ Já paguei o Pix (Ativar Assinatura)</button>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(223,177,91,0.08);border:1px solid rgba(223,177,91,0.25);border-radius:10px;color:var(--gold);font-size:12px;font-weight:600;">
+                                <span style="display:inline-block;width:12px;height:12px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:checkout-spin 0.8s linear infinite;"></span>
+                                Aguardando confirmação do banco... (Liberação 100% Automática)
+                            </div>
                         </div>
                     </div>`;
 
@@ -3422,30 +3425,31 @@ document.getElementById('btn-confirm-pix')?.addEventListener('click', async func
                     showToast('Código Pix copiado!', 'success');
                 });
 
-                document.getElementById('btn-confirm-pix-paid')?.addEventListener('click', async () => {
-                    showToast('Confirmando pagamento Pix...', 'info');
+                // Iniciar sondagem automática (polling) do status do pagamento a cada 3s
+                if (checkSubInterval) clearInterval(checkSubInterval);
+                checkSubInterval = setInterval(async () => {
                     try {
-                        await fetch('/api/payments/confirm', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, plan: activeCheckoutPlan })
-                        });
+                        const stRes = await fetch(`/api/user/status?email=${encodeURIComponent(email)}`);
+                        const stData = await stRes.json();
+                        if (stData && stData.plan && stData.plan !== 'free') {
+                            clearInterval(checkSubInterval);
+                            checkSubInterval = null;
+                            modalBody.innerHTML = `
+                                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;gap:16px;">
+                                    <div style="font-size:60px;animation:toastIn 0.4s ease;">✅</div>
+                                    <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento Confirmado!</div>
+                                    <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;">
+                                        Obrigado, <b>${holderName.split(' ')[0]}</b>!<br>
+                                        Sua assinatura do plano <b>${stData.plan.toUpperCase()}</b> foi ativada automaticamente.
+                                    </div>
+                                    <button id="btn-modal-success-close" style="width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);">
+                                        🚀 Ir para o Dashboard
+                                    </button>
+                                </div>`;
+                            approvePayment();
+                        }
                     } catch(e) {}
-
-                    modalBody.innerHTML = `
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;gap:16px;">
-                            <div style="font-size:60px;animation:toastIn 0.4s ease;">✅</div>
-                            <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento Confirmado!</div>
-                            <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;">
-                                Obrigado, <b>${holderName.split(' ')[0]}</b>!<br>
-                                Sua assinatura do plano <b>${activeCheckoutPlan.toUpperCase()}</b> foi ativada.
-                            </div>
-                            <button id="btn-modal-success-close" style="width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);">
-                                🚀 Ir para o Dashboard
-                            </button>
-                        </div>`;
-                    approvePayment();
-                });
+                }, 3000);
             }
         } else {
             btn.disabled  = false;
