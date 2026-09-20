@@ -1012,10 +1012,18 @@
 
             <!-- TAB: CUSTOMERS TABLE -->
             <section id="tab-users" class="view-panel">
-                <div class="view-header">
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                     <div>
                         <h2 class="view-title">Gerenciamento de Clientes</h2>
                         <div class="view-subtitle">Visualize, filtre, edite planos, bloqueie ou ative contas manualmente</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="openAddUserModal()" style="padding: 10px 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span>➕</span> Adicionar Cliente
+                        </button>
+                        <button onclick="openBulkImportModal()" style="padding: 10px 16px; background: rgba(223, 177, 91, 0.15); border: 1px solid rgba(223, 177, 91, 0.4); color: var(--primary); border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span>📥</span> Importar em Massa
+                        </button>
                     </div>
                 </div>
 
@@ -1178,6 +1186,72 @@
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeModal('change-plan-modal')">Cancelar</button>
                     <button type="submit" class="btn-save">Salvar Plano</button>
+                </div>
+            </form>
+        </div>
+    <!-- Add Single User Modal -->
+    <div class="modal" id="add-user-modal">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Novo Cliente</h3>
+                <button class="modal-close" onclick="closeModal('add-user-modal')">✕</button>
+            </div>
+            <form id="add-user-form" onsubmit="submitAddUser(event)">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="add-user-name" class="form-control" placeholder="ex: João Silva" required>
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="add-user-email" class="form-control" placeholder="cliente@email.com" required>
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label>CPF/CNPJ (Opcional)</label>
+                        <input type="text" id="add-user-doc" class="form-control" placeholder="000.000.000-00">
+                    </div>
+                    <div>
+                        <label>Plano Inicial</label>
+                        <select id="add-user-plan" class="form-control">
+                            <option value="creator" selected>Creator Pro</option>
+                            <option value="starter">Starter</option>
+                            <option value="enterprise">Business</option>
+                            <option value="free">Free</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal('add-user-modal')">Cancelar</button>
+                    <button type="submit" class="btn-save">Criar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Import Users Modal -->
+    <div class="modal" id="bulk-import-modal">
+        <div class="modal-content" style="max-width:540px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Importar Clientes em Massa</h3>
+                <button class="modal-close" onclick="closeModal('bulk-import-modal')">✕</button>
+            </div>
+            <form id="bulk-import-form" onsubmit="submitBulkImport(event)">
+                <div class="form-group">
+                    <label>Cole a lista de e-mails ou nome, email (1 por linha)</label>
+                    <textarea id="bulk-import-text" class="form-control" style="height:150px; font-family:monospace; font-size:12px;" placeholder="joao@gmail.com&#10;Maria Santos, maria@hotmail.com&#10;pedro@empresa.com" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Atribuir Plano a Todos</label>
+                    <select id="bulk-import-plan" class="form-control">
+                        <option value="creator" selected>Creator Pro</option>
+                        <option value="starter">Starter</option>
+                        <option value="enterprise">Business</option>
+                        <option value="free">Free</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal('bulk-import-modal')">Cancelar</button>
+                    <button type="submit" class="btn-save">📥 Importar Lista</button>
                 </div>
             </form>
         </div>
@@ -1603,6 +1677,77 @@
         }
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
+        }
+
+        function openAddUserModal() {
+            document.getElementById('add-user-name').value = '';
+            document.getElementById('add-user-email').value = '';
+            document.getElementById('add-user-doc').value = '';
+            document.getElementById('add-user-modal').style.display = 'flex';
+        }
+
+        async function submitAddUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('add-user-name').value.trim();
+            const email = document.getElementById('add-user-email').value.trim();
+            const doc = document.getElementById('add-user-doc').value.trim();
+            const plan = document.getElementById('add-user-plan').value;
+
+            try {
+                const res = await fetch('/api/admin/users/bulk-import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem(ADMIN_TOKEN_KEY)}`
+                    },
+                    body: JSON.stringify({
+                        usersText: `${name}, ${email}`,
+                        defaultPlan: plan
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Cliente cadastrado com sucesso!', 'success');
+                    closeModal('add-user-modal');
+                    fetchStats();
+                } else {
+                    showToast(data.message || 'Erro ao cadastrar cliente.', 'error');
+                }
+            } catch (err) {
+                showToast('Erro de conexão ao salvar cliente.', 'error');
+            }
+        }
+
+        function openBulkImportModal() {
+            document.getElementById('bulk-import-text').value = '';
+            document.getElementById('bulk-import-modal').style.display = 'flex';
+        }
+
+        async function submitBulkImport(e) {
+            e.preventDefault();
+            const usersText = document.getElementById('bulk-import-text').value;
+            const defaultPlan = document.getElementById('bulk-import-plan').value;
+
+            try {
+                const res = await fetch('/api/admin/users/bulk-import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem(ADMIN_TOKEN_KEY)}`
+                    },
+                    body: JSON.stringify({ usersText, defaultPlan })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Sucesso! ${data.importedCount} clientes importados. Total atual: ${data.totalUsers}`, 'success');
+                    closeModal('bulk-import-modal');
+                    fetchStats();
+                } else {
+                    showToast(data.message || 'Erro ao importar clientes.', 'error');
+                }
+            } catch (err) {
+                showToast('Erro de conexão ao realizar importação.', 'error');
+            }
         }
 
         // Render analytics charts using Chart.js

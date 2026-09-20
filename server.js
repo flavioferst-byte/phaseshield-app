@@ -1892,6 +1892,72 @@ app.post('/api/admin/users/create', (req, res) => {
     res.json({ success: true, user: u });
 });
 
+// Importação em massa de usuários (Paste text ou JSON array)
+app.post('/api/admin/users/bulk-import', (req, res) => {
+    const token = req.headers.authorization;
+    if (token !== 'admin-super-token-xyz-2026') {
+        return res.status(403).json({ error: 'Acesso negado.' });
+    }
+    
+    const { rawText, usersList, defaultPlan } = req.body;
+    const db = loadDb();
+    let importedCount = 0;
+    const targetPlan = defaultPlan || 'free';
+
+    let itemsToProcess = [];
+
+    if (Array.isArray(usersList) && usersList.length > 0) {
+        itemsToProcess = usersList;
+    } else if (rawText && typeof rawText === 'string') {
+        const lines = rawText.split(/[\r\n,;]+/);
+        lines.forEach(line => {
+            const clean = line.trim();
+            if (!clean) return;
+            const parts = clean.split(/[\t|]/).map(p => p.trim());
+            if (parts.length >= 2 && parts[1].includes('@')) {
+                itemsToProcess.push({ name: parts[0], email: parts[1], plan: parts[2] || targetPlan });
+            } else if (clean.includes('@')) {
+                const emailMatch = clean.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                if (emailMatch) {
+                    itemsToProcess.push({ email: emailMatch[0], name: emailMatch[0].split('@')[0], plan: targetPlan });
+                }
+            }
+        });
+    }
+
+    itemsToProcess.forEach(item => {
+        if (!item.email || !item.email.includes('@')) return;
+        const normalizedEmail = item.email.trim().toLowerCase();
+        let u = db.users.find(x => x.email && x.email.toLowerCase() === normalizedEmail);
+        const itemPlan = item.plan || targetPlan;
+        
+        if (u) {
+            if (item.name) u.name = item.name;
+            if (itemPlan) u.plan = itemPlan;
+            u.status = item.status || u.status || 'active';
+            u.lastAccess = new Date().toISOString();
+        } else {
+            u = {
+                name: item.name || normalizedEmail.split('@')[0],
+                email: normalizedEmail,
+                document: item.document || "000.000.000-00",
+                plan: itemPlan,
+                status: item.status || 'active',
+                overdueDays: 0,
+                createdAt: new Date().toISOString(),
+                lastAccess: new Date().toISOString(),
+                totalProcesses: 0,
+                sandbox: false
+            };
+            db.users.push(u);
+            importedCount++;
+        }
+    });
+
+    saveDb(db);
+    return res.json({ success: true, importedCount, totalUsers: db.users.length, users: db.users });
+});
+
 // Estatísticas globais do dashboard admin
 app.get('/api/admin/stats', (req, res) => {
     const token = req.headers.authorization;
