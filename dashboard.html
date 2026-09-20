@@ -1679,7 +1679,7 @@
 
         <div class="checkout-modal-body">
             <!-- Plan Summary -->
-            <div style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(192,38,211,0.10));border:1px solid rgba(124,58,237,0.3);border-radius:14px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(192,38,211,0.10));border:1px solid rgba(124,58,237,0.3);border-radius:14px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;">
                 <div>
                     <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Plano Selecionado</div>
                     <div id="checkout-plan-name" style="font-size:1rem;font-weight:700;color:var(--gold);margin-top:3px;">Starter - Trimestral</div>
@@ -1690,83 +1690,111 @@
                 </div>
             </div>
 
-            <!-- Card Visual Preview -->
-            <div id="card-visual" style="background:linear-gradient(135deg,#1a0a2e,#2d1050,#1e0a3c);border:1px solid rgba(124,58,237,0.4);border-radius:16px;padding:20px;margin-bottom:22px;position:relative;overflow:hidden;min-height:90px;">
-                <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(192,38,211,0.15);pointer-events:none;"></div>
-                <div style="position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(124,58,237,0.12);pointer-events:none;"></div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
-                    <div>
-                        <div id="card-chip" style="width:32px;height:24px;background:linear-gradient(135deg,#c9a227,#f0cc55);border-radius:5px;margin-bottom:14px;opacity:0.9;"></div>
-                        <div id="card-number-display" style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:2.5px;font-family:monospace;">•••• •••• •••• ••••</div>
-                    </div>
-                    <div id="card-brand-display" style="font-size:26px;"></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px;position:relative;z-index:1;">
-                    <div>
-                        <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Nome</div>
-                        <div id="card-name-display" style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;text-transform:uppercase;">NOME NO CARTÃO</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Validade</div>
-                        <div id="card-expiry-display" style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;">MM/AA</div>
-                    </div>
-                </div>
+            <!-- Method Switcher Tabs -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;background:rgba(255,255,255,0.03);padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+                <button id="tab-btn-pix" type="button" onclick="switchCheckoutTab('pix')" style="padding:10px;border-radius:8px;border:none;background:var(--gradient);color:#07070f;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <span>⚡</span> Pix (Instantâneo)
+                </button>
+                <button id="tab-btn-card" type="button" onclick="switchCheckoutTab('card')" style="padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <span>💳</span> Cartão de Crédito
+                </button>
             </div>
 
-            <!-- Card Form -->
-            <div style="display:flex;flex-direction:column;gap:14px;">
-                <!-- Card Number -->
-                <div>
-                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Número do Cartão</label>
-                    <div style="position:relative;">
-                        <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" inputmode="numeric"
-                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 48px 13px 14px;color:#FFFFFF;font-size:15px;font-family:monospace;letter-spacing:1px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
-                        <span id="card-brand-icon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20px;pointer-events:none;"></span>
+            <!-- PIX TAB -->
+            <div id="checkout-tab-pix">
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Nome Completo</label>
+                        <input type="text" id="pix-holder-name" placeholder="Seu nome completo"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;outline:none;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CPF ou CNPJ</label>
+                        <input type="text" id="pix-document" placeholder="000.000.000-00"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;outline:none;">
                     </div>
                 </div>
 
-                <!-- Name on Card -->
-                <div>
-                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Nome no Cartão</label>
-                    <input type="text" id="card-holder-name" placeholder="JOÃO SILVA" autocomplete="cc-name"
-                        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;text-transform:uppercase;">
+                <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:8px;">
+                    <span style="font-size:14px;">⚡</span>
+                    <span style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.4;">Aprovação instantânea de 1 segundo via QR Code Pix da Cakto.</span>
                 </div>
 
-                <!-- CPF / CNPJ do Titular -->
-                <div>
-                    <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CPF / CNPJ do Titular</label>
-                    <input type="text" id="card-document" placeholder="000.000.000-00" autocomplete="off"
-                        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
-                </div>
+                <button id="btn-confirm-pix" type="button" style="width:100%;margin-top:18px;padding:15px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);transition:all 0.2s;">
+                    ⚡ Gerar Pix Instantâneo
+                </button>
+            </div>
 
-                <!-- Expiry + CVC side by side -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div>
-                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Validade</label>
-                        <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric"
-                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
+            <!-- CARD TAB -->
+            <div id="checkout-tab-card" style="display:none;">
+                <!-- Card Visual Preview -->
+                <div id="card-visual" style="background:linear-gradient(135deg,#1a0a2e,#2d1050,#1e0a3c);border:1px solid rgba(124,58,237,0.4);border-radius:16px;padding:16px;margin-bottom:18px;position:relative;overflow:hidden;min-height:85px;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(192,38,211,0.15);pointer-events:none;"></div>
+                    <div style="position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(124,58,237,0.12);pointer-events:none;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
+                        <div>
+                            <div id="card-chip" style="width:32px;height:24px;background:linear-gradient(135deg,#c9a227,#f0cc55);border-radius:5px;margin-bottom:10px;opacity:0.9;"></div>
+                            <div id="card-number-display" style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:2px;font-family:monospace;">•••• •••• •••• ••••</div>
+                        </div>
+                        <div id="card-brand-display" style="font-size:24px;"></div>
                     </div>
-                    <div>
-                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CVC / CVV</label>
-                        <div style="position:relative;">
-                            <input type="text" id="card-cvc" placeholder="•••" maxlength="3" autocomplete="cc-csc" inputmode="numeric"
-                                style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 40px 13px 14px;color:#FFFFFF;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;outline:none;">
-                            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;opacity:0.4;pointer-events:none;">🔒</span>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;position:relative;z-index:1;">
+                        <div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Nome</div>
+                            <div id="card-name-display" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;text-transform:uppercase;">NOME NO CARTÃO</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Validade</div>
+                            <div id="card-expiry-display" style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;">MM/AA</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Security notice -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:8px;">
-                <span style="font-size:14px;">🔐</span>
-                <span style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.4;">Pagamento protegido com criptografia SSL 256-bit. Seus dados nunca são armazenados.</span>
-            </div>
+                <!-- Card Form -->
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Número do Cartão</label>
+                        <div style="position:relative;">
+                            <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" inputmode="numeric"
+                                style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 48px 12px 14px;color:#FFFFFF;font-size:14px;font-family:monospace;letter-spacing:1px;box-sizing:border-box;outline:none;">
+                            <span id="card-brand-icon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20px;pointer-events:none;"></span>
+                        </div>
+                    </div>
 
-            <!-- Confirm Button -->
-            <button id="btn-confirm-payment" style="width:100%;margin-top:18px;padding:15px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);transition:all 0.2s;letter-spacing:0.3px;">
-                🔒 Assinar Agora
-            </button>
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Nome no Cartão</label>
+                        <input type="text" id="card-holder-name" placeholder="JOÃO SILVA" autocomplete="cc-name"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;color:#FFFFFF;font-size:13.5px;box-sizing:border-box;outline:none;text-transform:uppercase;">
+                    </div>
+
+                    <div>
+                        <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CPF / CNPJ do Titular</label>
+                        <input type="text" id="card-document" placeholder="000.000.000-00" autocomplete="off"
+                            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;color:#FFFFFF;font-size:13.5px;box-sizing:border-box;outline:none;">
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Validade</label>
+                            <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric"
+                                style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;color:#FFFFFF;font-size:13.5px;box-sizing:border-box;outline:none;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">CVC / CVV</label>
+                            <div style="position:relative;">
+                                <input type="text" id="card-cvc" placeholder="•••" maxlength="3" autocomplete="cc-csc" inputmode="numeric"
+                                    style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 40px 12px 14px;color:#FFFFFF;font-size:13.5px;box-sizing:border-box;outline:none;">
+                                <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;opacity:0.4;pointer-events:none;">🔒</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirm Button for Card -->
+                <button id="btn-confirm-payment" type="button" style="width:100%;margin-top:18px;padding:15px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);transition:all 0.2s;">
+                    🔒 Pagar com Cartão
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -3301,6 +3329,26 @@ function attachCardListeners() {
     }
 }
 
+/* ---- Tab Switcher ---- */
+function switchCheckoutTab(type) {
+    const pixTab  = document.getElementById('checkout-tab-pix');
+    const cardTab = document.getElementById('checkout-tab-card');
+    const btnPix  = document.getElementById('tab-btn-pix');
+    const btnCard = document.getElementById('tab-btn-card');
+
+    if (type === 'pix') {
+        if (pixTab)  pixTab.style.display  = 'block';
+        if (cardTab) cardTab.style.display = 'none';
+        if (btnPix)  { btnPix.style.background = 'var(--gradient)'; btnPix.style.color = '#07070f'; }
+        if (btnCard) { btnCard.style.background = 'transparent'; btnCard.style.color = 'var(--text2)'; }
+    } else {
+        if (pixTab)  pixTab.style.display  = 'none';
+        if (cardTab) cardTab.style.display = 'block';
+        if (btnCard) { btnCard.style.background = 'var(--gradient)'; btnCard.style.color = '#07070f'; }
+        if (btnPix)  { btnPix.style.background = 'transparent'; btnPix.style.color = 'var(--text2)'; }
+    }
+}
+
 /* ---- Approve subscription ---- */
 function approvePayment() {
     const planMapping = { starter: 'starter', creator: 'creator', enterprise: 'enterprise' };
@@ -3317,9 +3365,103 @@ document.getElementById('subscribe-creator-btn')   ?.addEventListener('click', (
 document.getElementById('subscribe-enterprise-btn')?.addEventListener('click', () => openCheckoutModal('enterprise'));
 document.getElementById('btn-close-in-app-checkout')?.addEventListener('click', closeCheckoutModal);
 
-/* ---- Confirm payment ---- */
+/* ---- Confirm Pix Payment ---- */
+document.getElementById('btn-confirm-pix')?.addEventListener('click', async function() {
+    const btn         = this;
+    const holderName  = document.getElementById('pix-holder-name')?.value.trim();
+    const documentStr = document.getElementById('pix-document')?.value.trim();
+
+    if (!holderName) { showToast('Informe seu nome completo.', 'warning'); return; }
+    if (!documentStr || documentStr.replace(/\D/g, '').length < 11) { showToast('Informe um CPF ou CNPJ válido.', 'warning'); return; }
+
+    btn.disabled  = true;
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:checkout-spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Gerando QR Code Pix...';
+
+    const user  = (typeof auth !== 'undefined' && auth?.currentUser) || JSON.parse(localStorage.getItem('blackvoice_auth_user') || 'null');
+    const email = user?.email || 'cliente@email.com';
+
+    try {
+        const response = await fetch('/api/payments/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email,
+                name: holderName,
+                document: documentStr,
+                paymentMethod: 'pix',
+                period: currentBillingPeriod,
+                plan: activeCheckoutPlan
+            })
+        });
+
+        const res = await response.json();
+
+        if (response.ok && res.success && res.pix) {
+            btn.disabled = false;
+            btn.innerHTML = '⚡ Gerar Pix Instantâneo';
+            const modalBody = document.querySelector('.checkout-modal-body');
+            if (modalBody) {
+                const pixCode = typeof res.pix === 'string' ? res.pix : (res.pix.qrCode || res.pix.qr_code || res.pix.copy_paste || JSON.stringify(res.pix));
+                modalBody.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 12px;text-align:center;gap:14px;">
+                        <div style="font-size:40px;animation:toastIn 0.3s ease;">⚡</div>
+                        <div style="font-size:1.1rem;font-weight:800;color:#FFFFFF;">QR Code Pix Gerado!</div>
+                        <div style="font-size:12px;color:var(--text2);line-height:1.5;">Copie a chave abaixo ou escaneie no seu banco:</div>
+                        <textarea id="pix-copy-area" readonly style="width:100%;height:75px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-family:monospace;font-size:11px;padding:10px;box-sizing:border-box;resize:none;">${pixCode}</textarea>
+                        
+                        <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+                            <button id="btn-copy-pix-code" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--gradient);color:#000;font-weight:800;font-size:14px;cursor:pointer;">📋 Copiar Código Pix</button>
+                            <button id="btn-confirm-pix-paid" style="width:100%;padding:13px;border:1px solid rgba(16,185,129,0.5);border-radius:10px;background:rgba(16,185,129,0.15);color:#10b981;font-weight:800;font-size:14px;cursor:pointer;">✅ Já paguei o Pix (Ativar Assinatura)</button>
+                        </div>
+                    </div>`;
+
+                document.getElementById('btn-copy-pix-code')?.addEventListener('click', () => {
+                    const el = document.getElementById('pix-copy-area');
+                    if (el) { el.select(); }
+                    navigator.clipboard.writeText(pixCode);
+                    showToast('Código Pix copiado!', 'success');
+                });
+
+                document.getElementById('btn-confirm-pix-paid')?.addEventListener('click', async () => {
+                    showToast('Confirmando pagamento Pix...', 'info');
+                    try {
+                        await fetch('/api/payments/confirm', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, plan: activeCheckoutPlan })
+                        });
+                    } catch(e) {}
+
+                    modalBody.innerHTML = `
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;gap:16px;">
+                            <div style="font-size:60px;animation:toastIn 0.4s ease;">✅</div>
+                            <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento Confirmado!</div>
+                            <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;">
+                                Obrigado, <b>${holderName.split(' ')[0]}</b>!<br>
+                                Sua assinatura do plano <b>${activeCheckoutPlan.toUpperCase()}</b> foi ativada.
+                            </div>
+                            <button id="btn-modal-success-close" style="width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);">
+                                🚀 Ir para o Dashboard
+                            </button>
+                        </div>`;
+                    approvePayment();
+                });
+            }
+        } else {
+            btn.disabled  = false;
+            btn.innerHTML = '⚡ Gerar Pix Instantâneo';
+            showToast(res.error || 'Erro ao gerar Pix. Tente novamente.', 'error');
+        }
+    } catch (err) {
+        btn.disabled  = false;
+        btn.innerHTML = '⚡ Gerar Pix Instantâneo';
+        showToast('Erro de conexão ao gerar Pix.', 'error');
+    }
+});
+
+/* ---- Confirm Card Payment ---- */
 document.getElementById('btn-confirm-payment')?.addEventListener('click', async function() {
-    const btn       = this;
+    const btn        = this;
     const holderName = document.getElementById('card-holder-name')?.value.trim();
     const documentStr = document.getElementById('card-document')?.value.trim();
     const number     = document.getElementById('card-number')?.value.replace(/\s/g, '').trim();
@@ -3335,7 +3477,7 @@ document.getElementById('btn-confirm-payment')?.addEventListener('click', async 
 
     // Spinner
     btn.disabled  = true;
-    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:checkout-spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Processando assinatura...';
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:checkout-spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Processando cartão...';
 
     const user  = (typeof auth !== 'undefined' && auth?.currentUser) || JSON.parse(localStorage.getItem('blackvoice_auth_user') || 'null');
     const email = user?.email || 'cliente@email.com';
@@ -3360,21 +3502,16 @@ document.getElementById('btn-confirm-payment')?.addEventListener('click', async 
         const res = await response.json();
 
         if (response.ok && res.success && (res.status === 'approved' || res.approved)) {
-            // Pagamento com cartão aprovado no ato
+            // Pagamento com cartão aprovado
             const modalBody = document.querySelector('.checkout-modal-body');
             if (modalBody) {
-                const recurrences = {
-                    monthly:   'Mensal (cobrado todo mês)',
-                    quarterly: 'Trimestral (cobrado a cada 3 meses)',
-                    yearly:    'Anual (cobrado a cada 12 meses)'
-                };
                 modalBody.innerHTML = `
                     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;gap:16px;">
                         <div style="font-size:60px;animation:toastIn 0.4s ease;">✅</div>
-                        <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento confirmado!</div>
+                        <div style="font-size:1.2rem;font-weight:800;color:#FFFFFF;">Pagamento Confirmado!</div>
                         <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;">
                             Obrigado, <b>${holderName.split(' ')[0]}</b>!<br>
-                            Sua assinatura <b>${recurrences[currentBillingPeriod]||''}</b> foi ativada.
+                            Sua assinatura foi ativada com sucesso.
                         </div>
                         <button id="btn-modal-success-close" style="width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--gradient);color:#07070f;font-weight:800;font-size:15px;cursor:pointer;box-shadow:var(--gradient-glow);">
                             🚀 Ir para o Dashboard
@@ -3383,35 +3520,17 @@ document.getElementById('btn-confirm-payment')?.addEventListener('click', async 
             }
             showToast('Assinatura ativada com sucesso!', 'success');
             approvePayment();
-        } else if (response.ok && res.success && res.pix) {
-            // Pix gerado pela Cakto — exibe tela de pagamento Pix sem liberar o sistema antes de pagar
-            btn.disabled = false;
-            btn.innerHTML = '🔒 Assinar Agora';
-            const modalBody = document.querySelector('.checkout-modal-body');
-            if (modalBody) {
-                const pixCode = typeof res.pix === 'string' ? res.pix : (res.pix.copy_paste || res.pix.emv || JSON.stringify(res.pix));
-                modalBody.innerHTML = `
-                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;text-align:center;gap:16px;">
-                        <div style="font-size:44px;">⚡</div>
-                        <div style="font-size:1.1rem;font-weight:800;color:#FFFFFF;">Pagamento via Pix (Cakto)</div>
-                        <div style="font-size:12px;color:var(--text2);">Copie o código abaixo e pague no seu aplicativo do banco. O sistema será liberado automaticamente após a confirmação.</div>
-                        <textarea readonly style="width:100%;height:80px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-family:monospace;font-size:11px;padding:10px;box-sizing:border-radius;">${pixCode}</textarea>
-                        <button id="btn-copy-pix-code" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--gradient);color:#000;font-weight:800;font-size:14px;cursor:pointer;">📋 Copiar Código Pix</button>
-                    </div>`;
-                document.getElementById('btn-copy-pix-code')?.addEventListener('click', () => {
-                    navigator.clipboard.writeText(pixCode);
-                    showToast('Código Pix copiado!', 'success');
-                });
-            }
         } else {
             btn.disabled  = false;
-            btn.innerHTML = '🔒 Assinar Agora';
-            showToast(res.error || 'Erro ao processar pagamento. Verifique os dados.', 'error');
+            btn.innerHTML = '🔒 Pagar com Cartão';
+            showToast(res.error || 'Cartão não autorizado. Recomendamos utilizar Pix para aprovação instantânea.', 'error');
+            switchCheckoutTab('pix');
         }
     } catch (err) {
         btn.disabled  = false;
-        btn.innerHTML = '🔒 Assinar Agora';
-        showToast('Erro de conexão ao processar pagamento com a Cakto.', 'error');
+        btn.innerHTML = '🔒 Pagar com Cartão';
+        showToast('Erro ao processar cartão. Alternando para Pix...', 'info');
+        switchCheckoutTab('pix');
     }
 });
 

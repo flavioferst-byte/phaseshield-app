@@ -1638,10 +1638,11 @@ app.post('/api/payments/create', async (req, res) => {
                         return res.json({ success: true, status: 'approved', message: 'Pagamento aprovado!', data: parsed });
                     } else if (parsed && (parsed.pix || parsed.qr_code)) {
                         // Retorna os dados do Pix para pagamento pelo cliente
+                        const pixCode = (parsed.pix && typeof parsed.pix === 'object' ? (parsed.pix.qrCode || parsed.pix.qr_code || parsed.pix.emv) : parsed.pix) || parsed.qr_code || parsed.copy_paste;
                         return res.json({
                             success: true,
                             status: 'pending',
-                            pix: parsed.pix || parsed.qr_code,
+                            pix: pixCode,
                             message: 'Pix gerado com sucesso.'
                         });
                     } else {
@@ -1666,6 +1667,37 @@ app.post('/api/payments/create', async (req, res) => {
         console.error('Erro no fluxo de pagamento Cakto:', err.message);
         res.status(500).json({ success: false, error: err.message || 'Erro ao comunicar com a Cakto.' });
     }
+});
+
+// POST /api/payments/confirm - Confirmar e ativar plano para o usuário
+app.post('/api/payments/confirm', (req, res) => {
+    const { email, plan } = req.body;
+    if (!email || !plan) {
+        return res.status(400).json({ success: false, error: 'E-mail e Plano são obrigatórios.' });
+    }
+    const db = loadDb();
+    let u = db.users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+    if (u) {
+        u.plan = plan;
+        u.status = 'active';
+        u.overdueDays = 0;
+        u.lastAccess = new Date().toISOString();
+    } else {
+        db.users.push({
+            name: email.split('@')[0],
+            email: email,
+            document: '000.000.000-00',
+            plan: plan,
+            status: 'active',
+            overdueDays: 0,
+            createdAt: new Date().toISOString(),
+            lastAccess: new Date().toISOString(),
+            totalProcesses: 0,
+            sandbox: false
+        });
+    }
+    saveDb(db);
+    return res.json({ success: true, message: 'Assinatura ativada com sucesso!', user: u });
 });
 
 // POST /api/webhooks/cakto - Webhook para confirmação de pagamento pago da Cakto
