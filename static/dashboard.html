@@ -2527,8 +2527,8 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
             }
 
             const resp = await fetch('/api/process', { method: 'POST', body: fd });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const data = await resp.json();
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) throw new Error(data.detail || data.error || data.message || `HTTP ${resp.status}`);
             if (!data.task_id) throw new Error(data.detail || data.error || 'Sem task_id');
 
             batchResults[i].taskId = data.task_id;

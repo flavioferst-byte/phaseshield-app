@@ -853,8 +853,23 @@ app.get('/download-agressivo/:taskId', (req, res) => {
     });
 });
 
-// Rotas da API
-app.post('/api/process', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'image', maxCount: 1 }]), async (req, res) => {
+const uploadProcess = upload.fields([{ name: 'file', maxCount: 1 }, { name: 'image', maxCount: 1 }]);
+
+app.post('/api/process', (req, res, next) => {
+    uploadProcess(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            console.error('[Multer Error]:', err);
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ detail: 'Arquivo excede o limite máximo de 200MB.' });
+            }
+            return res.status(400).json({ detail: `Erro no upload: ${err.message}` });
+        } else if (err) {
+            console.error('[Upload Error]:', err);
+            return res.status(400).json({ detail: `Erro no envio do arquivo: ${err.message}` });
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         const videoFile = req.files && req.files['file'] ? req.files['file'][0] : null;
         const imageFile = req.files && req.files['image'] ? req.files['image'][0] : null;
