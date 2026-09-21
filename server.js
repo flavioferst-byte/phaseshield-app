@@ -404,24 +404,20 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             inputs.push(`-i "${finalImagePath}"`);
         }
 
-        // 4. Configurar filtros de áudio (Phase Cancellation no Áudio Original para anular na IA + Copy White para transcrição da IA)
+        // 4. Configurar filtros de áudio (Phase Cancellation + EQ para camuflagem de IA)
         let mapAudio = '';
         if (isVoiceover) {
             if (hasAudio) {
                 filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[orig]`);
                 filterParts.push(`[1:a]volume=0.01,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[voice]`);
-                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[mixed]`);
-                filterParts.push(`anoisesrc=color=pink:amplitude=0.003:sample_rate=44100,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[noise]`);
-                filterParts.push(`[mixed][noise]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`);
+                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
             } else {
                 filterParts.push(`[1:a]volume=1.00,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]`);
             }
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[clean]`);
-                filterParts.push(`anoisesrc=color=pink:amplitude=0.003:sample_rate=44100,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[noise]`);
-                filterParts.push(`[clean][noise]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`);
+                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[aout]`);
                 mapAudio = '-map "[aout]"';
             } else {
                 mapAudio = '-an'; // sem áudio no vídeo original e sem narração
@@ -962,14 +958,17 @@ app.post('/api/process', (req, res, next) => {
         const extendVideo = req.body.extendVideo === 'true';
         const mirrorVideo = req.body.mirrorVideo === 'true';
 
-        // Executar processamento ultrarrápido síncrono (duração de ~2s no servidor sem estourar timeout da Vercel)
+        // Executar processamento ultrarrápido síncrono
         await runUnifiedProcessing(taskId, inputPath, outputPath, text, videoFile.originalname, imagePath, imageOpacity, extendVideo, mirrorVideo);
 
         const finalTask = getTask(taskId);
         if (finalTask && finalTask.status === 'completed') {
             res.json({ task_id: taskId, status: 'completed', progress: 100 });
         } else {
-            res.status(500).json({ detail: finalTask ? finalTask.message : 'Falha no processamento.' });
+            // Mostrar a mensagem de erro real do FFmpeg para diagnóstico
+            const errMsg = finalTask ? finalTask.message : 'Falha no processamento.';
+            console.error(`[POST /api/process] Task ${taskId} failed: ${errMsg}`);
+            res.status(500).json({ detail: errMsg });
         }
 
     } catch (err) {

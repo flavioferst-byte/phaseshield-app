@@ -2531,10 +2531,19 @@ document.getElementById('btn-process-action').addEventListener('click', async fu
             });
 
             batchResults[i].taskId = data.task_id;
-            updateBatchItemStatus(i, 'processing', 50, 'Aplicando BlackVoice...');
 
-            // poll this file's task
-            await pollBatchTask(i, data.task_id);
+            // Se o servidor já processou de forma síncrona e retornou 'completed', não precisamos de polling
+            if (data.status === 'completed') {
+                updateBatchItemStatus(i, 'processing', 90, 'Finalizando...');
+                batchResults[i].status = 'done';
+                batchResults[i].url    = `/api/download/${data.task_id}`;
+                updateBatchItemStatus(i, 'done', 100, 'Concluído!');
+                addToHistory({ name: 'blackvoice_'+batchResults[i].file.name.replace(/\.[^.]+$/,'')+'.mp4', size: '—', url: batchResults[i].url });
+            } else {
+                // status 'processing' — acompanhar via polling
+                updateBatchItemStatus(i, 'processing', 55, 'Aplicando BlackVoice...');
+                await pollBatchTask(i, data.task_id);
+            }
 
             if (batchResults[i].status === 'done') successCount++;
         } catch (err) {
