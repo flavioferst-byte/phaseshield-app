@@ -303,7 +303,7 @@ function generateElevenLabsAudio(text, voiceId, apiKey, outputPath) {
 }
 
 // Background task para processamento Unificado (Phase Cancellation + opcionalmente ElevenLabs Voiceover e/ou Camuflagem de Imagem)
-async function runUnifiedProcessing(taskId, inputPath, outputPath, text, originalName, imagePath = '', imageOpacity = '0.20', extendVideo = true, mirrorVideo = false) {
+async function runUnifiedProcessing(taskId, inputPath, outputPath, text, originalName, imagePath = '', imageOpacity = '0.20', extendVideo = false, mirrorVideo = false) {
     const tempAudioPath = path.join(TMP_BASE, `temp_${taskId}_narracao.mp3`);
     const extractedThumbPath = path.join(INPUTS_DIR, `${taskId}_extracted_thumb.jpg`);
     const ext = path.extname(originalName) || '.mp4';
