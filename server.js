@@ -404,16 +404,20 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
         let mapAudio = '';
         if (isVoiceover) {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.15,pan=mono|c0=0.5*c0+0.5*c1,asetrate=44100*1.012,aresample=44100,atempo=0.988,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[orig]`);
+                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[orig]`);
                 filterParts.push(`[1:a]volume=0.01,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[voice]`);
-                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
+                filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[mixed]`);
+                filterParts.push(`anoisesrc=color=pink:amplitude=0.003:sample_rate=44100,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[noise]`);
+                filterParts.push(`[mixed][noise]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`);
             } else {
                 filterParts.push(`[1:a]volume=1.00,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]`);
             }
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.15,pan=mono|c0=0.5*c0+0.5*c1,asetrate=44100*1.012,aresample=44100,atempo=0.988,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[aout]`);
+                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[clean]`);
+                filterParts.push(`anoisesrc=color=pink:amplitude=0.003:sample_rate=44100,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[noise]`);
+                filterParts.push(`[clean][noise]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`);
                 mapAudio = '-map "[aout]"';
             } else {
                 mapAudio = '-an'; // sem áudio no vídeo original e sem narração
