@@ -521,16 +521,25 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             saveTask(taskId, { progress: 80, message: `Gerando extensão estática de 10 minutos...` });
             
             const audioInput = hasAudio ? `-f lavfi -t ${extendSeconds} -i anullsrc=r=44100:cl=stereo` : '';
-            const audioCodec = hasAudio ? `-c:a aac -b:a 128k` : '-an';
+            const audioCodec = hasAudio ? audioCodecStr : '-an';
 
-            // Garantir que a imagem de capa exista para o -loop 1
-            if (!finalImagePath || !fs.existsSync(finalImagePath)) {
+            let part2VideoInput = '';
+            if (finalImagePath && fs.existsSync(finalImagePath)) {
+                part2VideoInput = `-loop 1 -i "${finalImagePath}"`;
+            } else {
                 finalImagePath = extractedThumbPath;
                 console.log(`[Unified Processing] Emergency thumbnail extraction for part 2: ${finalImagePath}`);
                 await new Promise(r => exec(`"${ffmpeg}" -y -i "${inputPath}" -ss 00:00:00 -vframes 1 -f image2 "${finalImagePath}"`, r));
+                
+                if (fs.existsSync(finalImagePath)) {
+                    part2VideoInput = `-loop 1 -i "${finalImagePath}"`;
+                } else {
+                    console.log(`[Unified Processing] Thumbnail missing for part 2, using black canvas fallback.`);
+                    part2VideoInput = `-f lavfi -i color=c=black:s=${outWidth}x${outHeight}:r=${fps}`;
+                }
             }
 
-            const part2Cmd = `"${ffmpeg}" -y -loop 1 -i "${finalImagePath}" ${audioInput} -t ${extendSeconds} -c:v libx264 -preset ultrafast -tune zerolatency -crf 30 -pix_fmt yuv420p -r ${fps} -g ${Math.round(fps * 2)} -threads 0 -vf "scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight}" ${audioCodec} "${part2Path}"`;
+            const part2Cmd = `"${ffmpeg}" -y ${part2VideoInput} ${audioInput} -t ${extendSeconds} -c:v libx264 -preset ultrafast -tune zerolatency -crf 30 -pix_fmt yuv420p -r ${fps} -g ${Math.round(fps * 2)} -threads 0 -vf "scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight}" ${audioCodec} "${part2Path}"`;
 
             console.log(`[Unified Processing] running cmd (Part 2 - ${extendSeconds}s static extension at ${fps} fps): ${part2Cmd}`);
 
