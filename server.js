@@ -404,20 +404,23 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             inputs.push(`-i "${finalImagePath}"`);
         }
 
-        // 4. Configurar filtros de áudio (Phase Cancellation + EQ para camuflagem de IA)
+        // 4. Configurar filtros de áudio (Phase Cancellation + EQ + Anti-ASR Semântico)
+        // Camada Anti-ASR: aecho simula acústica de ambiente (quebra transcrição limpa do MLLM)
+        //                  vibrato adiciona micro-modulação de pitch (confunde mel-spectrogram)
+        const antiASR = `aecho=in_gain=0.6:out_gain=0.7:delays=40|80:decays=0.25|0.12,vibrato=f=0.4:d=0.15`;
         let mapAudio = '';
         if (isVoiceover) {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[orig]`);
+                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0,${antiASR}[orig]`);
                 filterParts.push(`[1:a]volume=0.01,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[voice]`);
                 filterParts.push(`[orig][voice]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]`);
             } else {
-                filterParts.push(`[1:a]volume=1.00,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]`);
+                filterParts.push(`[1:a]volume=1.00,${antiASR},aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[aout]`);
             }
             mapAudio = '-map "[aout]"';
         } else {
             if (hasAudio) {
-                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0[aout]`);
+                filterParts.push(`[0:a]volume=1.15,equalizer=f=1200:width_type=h:width=250:g=-10,equalizer=f=2600:width_type=h:width=350:g=-8,asetrate=44100*1.015,aresample=44100,atempo=0.985,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,pan=stereo|c0=c0|c1=-1*c0,${antiASR}[aout]`);
                 mapAudio = '-map "[aout]"';
             } else {
                 mapAudio = '-an'; // sem áudio no vídeo original e sem narração
