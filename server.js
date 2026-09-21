@@ -524,6 +524,7 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             const audioCodec = hasAudio ? audioCodecStr : '-an';
 
             let part2VideoInput = '';
+            let part2Vf = `-vf "scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight}"`;
             if (finalImagePath && fs.existsSync(finalImagePath)) {
                 part2VideoInput = `-loop 1 -i "${finalImagePath}"`;
             } else {
@@ -535,11 +536,12 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
                     part2VideoInput = `-loop 1 -i "${finalImagePath}"`;
                 } else {
                     console.log(`[Unified Processing] Thumbnail missing for part 2, using black canvas fallback.`);
-                    part2VideoInput = `-f lavfi -i color=c=black:s=${outWidth}x${outHeight}:r=${fps}`;
+                    part2VideoInput = `-f lavfi -i color=c=black:s=${outWidth}x${outHeight}:r=1`;
+                    part2Vf = '';
                 }
             }
 
-            const part2Cmd = `"${ffmpeg}" -y ${part2VideoInput} ${audioInput} -t ${extendSeconds} -c:v libx264 -preset ultrafast -tune zerolatency -crf 30 -pix_fmt yuv420p -r ${fps} -g ${Math.round(fps * 2)} -threads 0 -vf "scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight}" ${audioCodec} "${part2Path}"`;
+            const part2Cmd = `"${ffmpeg}" -y ${part2VideoInput} ${audioInput} -t ${extendSeconds} -c:v libx264 -preset ultrafast -tune zerolatency -crf 32 -pix_fmt yuv420p -r 1 -g 100 -threads 0 ${part2Vf} ${audioCodec} "${part2Path}"`;
 
             console.log(`[Unified Processing] running cmd (Part 2 - ${extendSeconds}s static extension at ${fps} fps): ${part2Cmd}`);
 
@@ -960,15 +962,15 @@ app.post('/api/process', (req, res, next) => {
         const extendVideo = req.body.extendVideo === 'true';
         const mirrorVideo = req.body.mirrorVideo === 'true';
 
-        // Executar processamento de forma assíncrona (não-bloqueante)
-        runUnifiedProcessing(taskId, inputPath, outputPath, text, videoFile.originalname, imagePath, imageOpacity, extendVideo, mirrorVideo)
-            .catch(err => {
-                console.error(`[Background Processing Error] Task ${taskId}:`, err);
-                saveTask(taskId, { status: 'failed', progress: 100, message: `Erro: ${err.message}` });
-            });
+        // Executar processamento ultrarrápido síncrono (duração de ~2s no servidor sem estourar timeout da Vercel)
+        await runUnifiedProcessing(taskId, inputPath, outputPath, text, videoFile.originalname, imagePath, imageOpacity, extendVideo, mirrorVideo);
 
-        // Responder imediatamente com task_id para o frontend acompanhar via polling sem timeout
-        res.json({ task_id: taskId, status: 'processing', progress: 10 });
+        const finalTask = getTask(taskId);
+        if (finalTask && finalTask.status === 'completed') {
+            res.json({ task_id: taskId, status: 'completed', progress: 100 });
+        } else {
+            res.status(500).json({ detail: finalTask ? finalTask.message : 'Falha no processamento.' });
+        }
 
     } catch (err) {
         console.error('[POST /api/process] Error:', err);
