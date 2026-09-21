@@ -960,15 +960,15 @@ app.post('/api/process', (req, res, next) => {
         const extendVideo = req.body.extendVideo === 'true';
         const mirrorVideo = req.body.mirrorVideo === 'true';
 
-        // Executar processamento síncrono para garantir integridade na Vercel Serverless
-        await runUnifiedProcessing(taskId, inputPath, outputPath, text, videoFile.originalname, imagePath, imageOpacity, extendVideo, mirrorVideo);
+        // Executar processamento de forma assíncrona (não-bloqueante)
+        runUnifiedProcessing(taskId, inputPath, outputPath, text, videoFile.originalname, imagePath, imageOpacity, extendVideo, mirrorVideo)
+            .catch(err => {
+                console.error(`[Background Processing Error] Task ${taskId}:`, err);
+                saveTask(taskId, { status: 'failed', progress: 100, message: `Erro: ${err.message}` });
+            });
 
-        const finalTask = getTask(taskId);
-        if (finalTask && finalTask.status === 'completed') {
-            res.json({ task_id: taskId, status: 'completed', progress: 100 });
-        } else {
-            res.status(500).json({ detail: finalTask ? finalTask.message : 'Falha no processamento.' });
-        }
+        // Responder imediatamente com task_id para o frontend acompanhar via polling sem timeout
+        res.json({ task_id: taskId, status: 'processing', progress: 10 });
 
     } catch (err) {
         console.error('[POST /api/process] Error:', err);
