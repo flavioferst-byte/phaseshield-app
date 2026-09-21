@@ -2689,7 +2689,8 @@ function showBatchResults(successCount, totalCount) {
 
     // per-file download list
     resultList.innerHTML = batchResults.map((r, i) => {
-        const outName = 'blackvoice_' + r.file.name.replace(/\.[^.]+$/, '') + '.mp4';
+        const fileExt = r.file.name.includes('.') ? '.' + r.file.name.split('.').pop() : '.mp4';
+        const outName = 'blackvoice_' + r.file.name.replace(/\.[^.]+$/, '') + fileExt;
         if (r.status === 'done') {
             return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px 14px;gap:10px;">
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">

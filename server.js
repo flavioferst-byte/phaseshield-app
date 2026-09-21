@@ -217,6 +217,7 @@ function inspectFileWithFFmpeg(filePath) {
             }
             
             const hasAudio = /Stream\s+#\d+:\d+.*Audio:/i.test(output);
+            const hasVideo = /Stream\s+#\d+:\d+.*Video:/i.test(output);
             
             let width = 1080;
             let height = 1920;
@@ -231,7 +232,7 @@ function inspectFileWithFFmpeg(filePath) {
                 fps = parseFloat(fpsMatch[1]);
             }
             
-            resolve({ duration, hasAudio, width, height, fps: isNaN(fps) ? 30 : fps });
+            resolve({ duration, hasAudio, hasVideo, width, height, fps: isNaN(fps) ? 30 : fps });
         });
     });
 }
@@ -324,9 +325,10 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
         saveTask(taskId, { status: 'processing', progress: 10, message: 'Preparando arquivos...', fileName: originalName, resultFile: '' });
 
         const meta = await getVideoMetadata(inputPath);
-        const outWidth = 2 * Math.floor((meta.width - 16) / 2);
-        const outHeight = 2 * Math.floor((meta.height - 16) / 2);
-        const fps = meta.fps;
+        const hasVideo = !!meta.hasVideo;
+        const outWidth = Math.max(2, 2 * Math.floor((meta.width || 1080) / 2));
+        const outHeight = Math.max(2, 2 * Math.floor((meta.height || 1920) / 2));
+        const fps = meta.fps || 30;
 
         if (isVoiceover) {
             // Caso com Narração: Gerar áudio na ElevenLabs
@@ -362,19 +364,21 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
             }
         }
 
-        // Extrair capa inicial do vídeo se camuflagem ou extensão estarem ativas e nenhuma imagem customizada foi enviada
-        if ((hasImage || extendVideo) && !finalImagePath) {
+        // Extrair capa inicial do vídeo APENAS se houver fluxo de vídeo e (hasImage ou extendVideo) e nenhuma imagem customizada foi enviada
+        if (hasVideo && (hasImage || extendVideo) && !finalImagePath) {
             saveTask(taskId, { progress: 40, message: 'Extraindo capa miniatura do vídeo...' });
             console.log(`[Unified Processing] Extracting cover frame to: ${extractedThumbPath}`);
             const extractCmd = `"${ffmpeg}" -y -i "${inputPath}" -ss 00:00:00 -vframes 1 -f image2 "${extractedThumbPath}"`;
-            await new Promise((resolve, reject) => {
-                exec(extractCmd, (err, stdout, stderr) => {
-                    if (err) return reject(new Error(`Erro ao extrair miniatura de capa: ${stderr || err.message}`));
+            await new Promise((resolve) => {
+                exec(extractCmd, (err) => {
+                    if (err) console.error(`[Unified Processing] Warning: could not extract thumbnail: ${err.message}`);
                     resolve();
                 });
             });
-            finalImagePath = extractedThumbPath;
-            isExtracted = true;
+            if (fs.existsSync(extractedThumbPath)) {
+                finalImagePath = extractedThumbPath;
+                isExtracted = true;
+            }
         }
 
         // Aplicar Camuflagem
@@ -396,7 +400,7 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
         }
 
         // 3. Entrada da imagem de capa (se houver)
-        if (hasImage && finalImagePath) {
+        if (hasImage && finalImagePath && fs.existsSync(finalImagePath)) {
             inputs.push(`-i "${finalImagePath}"`);
         }
 
@@ -430,54 +434,68 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
         
         const flipStr = mirrorVideo ? ',hflip' : '';
 
-        if (hasImage && finalImagePath) {
-            const eqStr = `eq=contrast=1.02:brightness=0.008:saturation=1.03:gamma=1.01`;
-            mapVideo = '-map "[vout]"';
-            vcodec = '-c:v:0 libx264 -preset ultrafast -tune zerolatency -crf 30 -threads 0 -pix_fmt yuv420p';
-            let videoChain = `[0:v]setpts=0.999*PTS,scale='2*trunc(iw/2)':'2*trunc(ih/2)',${eqStr}${flipStr}`;
-            let currentStream = '[vout_base]';
-            filterParts.push(`${videoChain}${currentStream}`);
+        if (hasVideo) {
+            if (hasImage && finalImagePath && fs.existsSync(finalImagePath)) {
+                const eqStr = `eq=contrast=1.02:brightness=0.008:saturation=1.03:gamma=1.01`;
+                mapVideo = '-map "[vout]"';
+                vcodec = '-c:v:0 libx264 -preset ultrafast -tune zerolatency -crf 30 -threads 0 -pix_fmt yuv420p';
+                let videoChain = `[0:v]setpts=0.999*PTS,scale='2*trunc(iw/2)':'2*trunc(ih/2)',${eqStr}${flipStr}`;
+                let currentStream = '[vout_base]';
+                filterParts.push(`${videoChain}${currentStream}`);
 
-            const imgInputIndex = isVoiceover ? 2 : 1;
-            // Escalar a imagem para a mesma resolução do vídeo mantendo a proporção (tipo cover/crop)
-            filterParts.push(`[${imgInputIndex}:v]scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight},format=rgba[img_scaled_base]`);
-            
-            // Duplicar o stream da imagem para uso seguro no filter_complex (capa no frame 0 e flashes de camuflagem)
-            filterParts.push(`[img_scaled_base]split=2[img_cover_in][img_flash_in]`);
-            
-            // 1. Capa no frame 0 (t < 0.04) com 100% de opacidade para virar a miniatura padrão em redes sociais
-            filterParts.push(`[img_cover_in]colorchannelmixer=aa=1.0[img_cover]`);
-            filterParts.push(`${currentStream}[img_cover]overlay=0:0:enable='lt(t,0.04)'[vout_mid]`);
-            
-            // 2. Flash periódico de camuflagem a cada 1 segundo com a opacidade do slider, durando 0.099s (3 frames)
-            filterParts.push(`[img_flash_in]colorchannelmixer=aa=${imageOpacity}[img_flash]`);
-            filterParts.push(`[vout_mid][img_flash]overlay=0:0:enable='gt(t,0.5)*lt(mod(t,1.0),0.099)'[vout]`);
-        } else if (mirrorVideo || extendVideo) {
-            mapVideo = '-map "[vout]"';
-            vcodec = '-c:v:0 libx264 -preset ultrafast -tune zerolatency -crf 30 -threads 0 -pix_fmt yuv420p';
-            let vchain = `[0:v]setpts=0.999*PTS,scale='2*trunc(iw/2)':'2*trunc(ih/2)'`;
-            if (mirrorVideo) vchain += `,hflip`;
-            filterParts.push(`${vchain}[vout]`);
+                const imgInputIndex = isVoiceover ? 2 : 1;
+                filterParts.push(`[${imgInputIndex}:v]scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight},format=rgba[img_scaled_base]`);
+                filterParts.push(`[img_scaled_base]split=2[img_cover_in][img_flash_in]`);
+                filterParts.push(`[img_cover_in]colorchannelmixer=aa=1.0[img_cover]`);
+                filterParts.push(`${currentStream}[img_cover]overlay=0:0:enable='lt(t,0.04)'[vout_mid]`);
+                filterParts.push(`[img_flash_in]colorchannelmixer=aa=${imageOpacity}[img_flash]`);
+                filterParts.push(`[vout_mid][img_flash]overlay=0:0:enable='gt(t,0.5)*lt(mod(t,1.0),0.099)'[vout]`);
+            } else if (mirrorVideo || extendVideo) {
+                mapVideo = '-map "[vout]"';
+                vcodec = '-c:v:0 libx264 -preset ultrafast -tune zerolatency -crf 30 -threads 0 -pix_fmt yuv420p';
+                let vchain = `[0:v]setpts=0.999*PTS,scale='2*trunc(iw/2)':'2*trunc(ih/2)'`;
+                if (mirrorVideo) vchain += `,hflip`;
+                filterParts.push(`${vchain}[vout]`);
+            } else {
+                mapVideo = '-map 0:v:0?';
+                vcodec = '-c:v copy';
+            }
         } else {
-            // Sem imagem de capa, sem espelhamento e sem alongamento: copia o fluxo de vídeo diretamente (sub-segundo)
-            mapVideo = '-map 0:v:0?';
-            vcodec = '-c:v copy';
+            // Arquivo é apenas áudio (sem fluxo de vídeo [0:v])
+            if (hasImage && finalImagePath && fs.existsSync(finalImagePath)) {
+                mapVideo = '-map "[vout]"';
+                vcodec = '-c:v:0 libx264 -preset ultrafast -tune zerolatency -crf 30 -threads 0 -pix_fmt yuv420p';
+                const imgInputIndex = isVoiceover ? 2 : 1;
+                filterParts.push(`[${imgInputIndex}:v]scale=${outWidth}:${outHeight}:force_original_aspect_ratio=increase,crop=${outWidth}:${outHeight}[vout]`);
+            } else {
+                mapVideo = '-vn';
+                vcodec = '';
+            }
         }
 
-        // Se o alongamento estiver ativo, dividimos em duas partes e concatenamos
-        const doExtension = extendVideo;
+        // Se o alongamento estiver ativo E houver vídeo, dividimos em duas partes e concatenamos
+        const doExtension = extendVideo && hasVideo;
         const tempOutputPath = doExtension
             ? path.join(OUTPUTS_DIR, `temp_filter_${taskId}${ext}`)
             : outputPath;
 
         const mainVideoPath = doExtension ? part1Path : tempOutputPath;
 
-        // Executar Parte 1: Processar o vídeo em passagem única ultra rápida
+        // Determinar codec de áudio apropriado com base na extensão do arquivo de saída
+        let audioCodecStr = '-c:a aac -b:a 128k';
+        const lowerExt = ext.toLowerCase();
+        if (lowerExt === '.mp3') {
+            audioCodecStr = '-c:a libmp3lame -b:a 192k';
+        } else if (lowerExt === '.wav') {
+            audioCodecStr = '-c:a pcm_s16le';
+        }
+
+        // Executar Parte 1: Processar o vídeo ou áudio em passagem única ultra rápida
         const randomUuid = crypto.randomUUID();
         const filterStr = filterParts.length > 0 ? `-filter_complex "${filterParts.join(';')}"` : '';
-        cmd = `"${ffmpeg}" -y ${inputs.join(' ')} ${filterStr} ${mapVideo} ${mapAudio} ${vcodec} -c:a aac -b:a 128k -shortest -map_metadata -1 -metadata comment="${randomUuid}" "${mainVideoPath}"`;
+        cmd = `"${ffmpeg}" -y ${inputs.join(' ')} ${filterStr} ${mapVideo} ${mapAudio} ${vcodec} ${audioCodecStr} -shortest -map_metadata -1 -metadata comment="${randomUuid}" "${mainVideoPath}"`;
 
-        console.log(`[Unified Processing] running cmd (Main video): ${cmd}`);
+        console.log(`[Unified Processing] running cmd (Main video/audio): ${cmd}`);
 
         await new Promise((resolve, reject) => {
             exec(cmd, (err, stdout, stderr) => {
@@ -485,7 +503,7 @@ async function runUnifiedProcessing(taskId, inputPath, outputPath, text, origina
                     console.error(`[Unified Processing] Cmd failed: ${stderr || err.message}`);
                     if (vcodec.includes('copy')) {
                         const fallbackVcodec = '-c:v libx264 -preset ultrafast -tune zerolatency -crf 32 -threads 0 -pix_fmt yuv420p';
-                        const fallbackCmd = `"${ffmpeg}" -y ${inputs.join(' ')} ${filterStr} -map 0:v:0? ${mapAudio} ${fallbackVcodec} -c:a aac -b:a 128k -shortest -map_metadata -1 -metadata comment="${randomUuid}" "${mainVideoPath}"`;
+                        const fallbackCmd = `"${ffmpeg}" -y ${inputs.join(' ')} ${filterStr} ${hasVideo ? '-map 0:v:0?' : '-vn'} ${mapAudio} ${fallbackVcodec} ${audioCodecStr} -shortest -map_metadata -1 -metadata comment="${randomUuid}" "${mainVideoPath}"`;
                         console.log(`[Unified Processing] Retrying with fallback ultrafast encoding: ${fallbackCmd}`);
                         return exec(fallbackCmd, (err2, stdout2, stderr2) => {
                             if (err2) return reject(new Error(`Erro no FFmpeg: ${stderr2 || err2.message}`));
